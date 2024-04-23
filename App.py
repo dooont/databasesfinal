@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, redirect, render_template, request, session, url_for
 
 app = Flask(__name__)
 app.secret_key = 'whatever_you_want'
@@ -6,26 +6,39 @@ app.secret_key = 'whatever_you_want'
 # Handles GET form submission
 @app.route('/', methods=['GET'])
 def query_example():
-    date1 = request.args.get('date1')
-    date2 = request.args.get('date2')
+    # date1 = request.args.get('date1')
+    # date2 = request.args.get('date2')
 
     # Any actual logic that you want to implement
 
-    return render_template('index.html', date1=date1, date2=date2)
+    return render_template('index.html')
 
 # Handles POST form submission
-@app.route('/form-example', methods=['POST'])
+@app.route('/customer-login', methods=['POST'])
 def form_example():
-    data1 = request.form.get('data1')
-    data2 = request.form.get('data2')
-    data = {
-        'data1': data1,
-        'data2': data2
-    }
+    # data1 = request.form.get('data1')
+    # data2 = request.form.get('data2')
+    # data = {
+    #     'data1': data1,
+    #     'data2': data2
+    # }
 
     # Any actual logic that you want to implement
 
-    return render_template('form_example.html', data=data)
+    return render_template('customer_login.html')
+
+@app.route('/staff-login', methods=['POST'])
+def form_example():
+    # data1 = request.form.get('data1')
+    # data2 = request.form.get('data2')
+    # data = {
+    #     'data1': data1,
+    #     'data2': data2
+    # }
+
+    # Any actual logic that you want to implement
+
+    return render_template('staff_login.html')
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -44,6 +57,7 @@ def protected():
         return render_template('unauthorized.html')
     
 from functools import wraps
+
 
 # This is a decorator that will make the route only accessible to logged in users
 # Make sure to import functools
