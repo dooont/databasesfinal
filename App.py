@@ -4,14 +4,14 @@ app = Flask(__name__)
 app.secret_key = 'whatever_you_want'
 
 # Handles GET form submission
-@app.route('/query-example', methods=['GET'])
+@app.route('/', methods=['GET'])
 def query_example():
     date1 = request.args.get('date1')
     date2 = request.args.get('date2')
 
     # Any actual logic that you want to implement
 
-    return render_template('query_example.html', date1=date1, date2=date2)
+    return render_template('index.html', date1=date1, date2=date2)
 
 # Handles POST form submission
 @app.route('/form-example', methods=['POST'])
