@@ -2,32 +2,31 @@ from flask import Flask, redirect, render_template, request, session, url_for
 import pymysql.cursors
 from datetime import datetime, timedelta
 
-app = Flask(__name__)
+
+app = Flask(__name__, static_folder="static")
 app.secret_key = 'whatever_you_want'
 
 # Handles GET form submission at the root URL
 @app.route('/', methods=['GET'])
 def index():
-    # date1 = request.args.get('date1')
-    # date2 = request.args.get('date2')
-
-    # Implement any actual logic you need here
     return render_template('index.html')
 
-
 # Handles POST form submission
-@app.route('/customer-login', methods=['POST'])
-def customerLoginPost():
-    # data1 = request.form.get('data1')
-    # data2 = request.form.get('data2')
-    # data = {
-    #     'data1': data1,
-    #     'data2': data2
-    # }
-
-    # Any actual logic that you want to implement
-
+@app.route('/customer-login', methods=['GET'])
+def customer_login():
     return render_template('customer_login.html')
+
+@app.route('/customer-register', methods=['GET'])
+def customer_register():
+    return render_template('customer_register.html')
+
+@app.route('/staff-login', methods=['GET'])
+def staff_login():
+    return render_template('staff_login.html')
+
+@app.route('/staff-register', methods=['GET'])
+def staff_register():
+    return render_template('staff_register.html')
 
 
 @app.route('/staff-login', methods=['POST'])
@@ -189,13 +188,16 @@ def view_myflights():
 
 	cursor = conn.cursor()
 	query = '''
+
 		SELECT  ticketID, flight.ID, depDate, depTime, arrDate, arrTime, status
+    
 		FROM flight INNER JOIN ticket
         where customer_email = %s
         and ticket.flightID = flight.ID
 		and depDate between %s and %s;
 
 	'''
+
     #ticket.flightID and flight.ID both refer to the ID of the airplane
     #check line where customer_email=%s. Does not seem it will work. Check for a way around. Maybe use customer name
 	cursor.execute(query, (session.get('username'),start_date, end_date))

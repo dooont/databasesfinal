@@ -3,9 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}"></link>
   <title>Document</title>
 </head>
 <body>
+  <h1>Staff Registration Form</h1>
   <div class="staff register-form">
     <form action="/submit-your-login-form" method="post">
       <label for="username">Username:</label>
