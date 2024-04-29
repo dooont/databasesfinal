@@ -7,7 +7,7 @@ app.secret_key = 'whatever_you_want'
 
 # Handles GET form submission
 @app.route('/', methods=['GET'])
-def query_example():
+def index():
     # date1 = request.args.get('date1')
     # date2 = request.args.get('date2')
 
@@ -17,7 +17,7 @@ def query_example():
 
 # Handles POST form submission
 @app.route('/customer-login', methods=['POST'])
-def form_example():
+def customerLoginPost():
     # data1 = request.form.get('data1')
     # data2 = request.form.get('data2')
     # data = {
@@ -30,7 +30,7 @@ def form_example():
     return render_template('customer_login.html')
 
 @app.route('/staff-login', methods=['POST'])
-def form_example():
+def staffLoginPost():
     # data1 = request.form.get('data1')
     # data2 = request.form.get('data2')
     # data = {
@@ -43,14 +43,14 @@ def form_example():
     return render_template('staff_login.html')
 
 @app.route('/login', methods=['POST'])
-def login():
+def loginPost():
     # Verify username and password here
     session['logged_in'] = True
     return redirect(url_for('protected'))
 
 # Basic protected route example
 @app.route('/protected', methods=['GET'])
-def protected():
+def protectedGet():
     if session.get('logged_in'):
         # let the user see the protected page
         return render_template('protected.html')
