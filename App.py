@@ -3,15 +3,16 @@ from flask import Flask, redirect, render_template, request, session, url_for
 app = Flask(__name__)
 app.secret_key = 'whatever_you_want'
 
-# Handles GET form submission
+# Handles GET form submission at the root URL
 @app.route('/', methods=['GET'])
 def index():
+    # You can fetch query parameters from the request object
     # date1 = request.args.get('date1')
     # date2 = request.args.get('date2')
 
-    # Any actual logic that you want to implement
-
+    # Implement any actual logic you need here
     return render_template('index.html')
+
 
 # Handles POST form submission
 @app.route('/customer-login', methods=['GET'])
