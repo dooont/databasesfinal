@@ -403,20 +403,26 @@ def changeFlightStatus():
 @app.route('/create-flight', methods=['GET', 'POST'])
 def createFlight():
     if request.method == 'POST':
-        airline = request.form.get('airline')
-        flight_id = request.form.get('flight_number')
-        airplane_id = request.form.get('aircraft_id')
-        dep_airport = request.form.get('departure_airport')
-        arr_airport = request.form.get('arrival_airport')
-        dep_date = request.form.get('departure_date')
-        dep_time = request.form.get('departure_time')
-        arr_date = request.form.get('arrival_date')
-        arr_time = request.form.get('arrival_time')
-        price = request.form.get('price')
-        status = "on-time"
+        username = session.get('username')
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
+                cursor.execute("SELECT Airline_Name FROM airlineStaff WHERE Username = %s", (username,))
+                result = cursor.fetchone()
+                if not result:
+                    return "Airline not found for the user", 404
+
+                airline = result['Airline_Name']
+                flight_id = request.form.get('flight_number')
+                airplane_id = request.form.get('aircraft_id')
+                dep_airport = request.form.get('departure_airport')
+                arr_airport = request.form.get('arrival_airport')
+                dep_date = request.form.get('departure_date')
+                dep_time = request.form.get('departure_time')
+                arr_date = request.form.get('arrival_date')
+                arr_time = request.form.get('arrival_time')
+                price = request.form.get('price')
+                status = "on-time"
                 cursor.execute("INSERT INTO flight (Name, flightNum, depAirport, arrAirport, depDate, depTime, arrDate, arrTime, ID, basePrice, status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (airline, flight_id, dep_airport, arr_airport, dep_date, dep_time, arr_date, arr_time, airplane_id, price, status))
                 connection.commit()
         finally:
