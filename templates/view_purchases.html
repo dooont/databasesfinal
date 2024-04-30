@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <thead>
+    <tr>
+      <th>Customer Email</th>
+      <th>Flight Name</th>
+      <th>Flight Number</th>
+      <th>Departure Date</th>
+      <th>Departure Time</th>
+      <th>Flight ID</th>
+      <th>Purchase Time</th>
+      <th>Purchase Date</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for purchase in purchases %}
+    <tr>
+      <td>{{ purchase.CustomerEmail }}</td>
+      <td>{{ purchase.flightName }}</td>
+      <td>{{ purchase.flightNum }}</td>
+      <td>{{ purchase.flightDepDate }}</td>
+      <td>{{ purchase.flightDepTime }}</td>
+      <td>{{ purchase.flightID }}</td>
+      <td>{{ purchase.PurchaseTime }}</td>
+      <td>{{ purchase.PurchaseDate }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</body>
+
+</html>
