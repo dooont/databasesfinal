@@ -127,6 +127,27 @@ def filter_flightsCustomer():
         
     return render_template('view_flights_customer.html', flights=flight_records)
 
+@app.route('/flights-cust', methods=['POST'])
+def purchase():
+    flight_name = request.form.get('flight_name')
+    flight_flightNum = request.form.get('flight_flightNum')
+    flight_depDate = request.form.get('flight_depDate')
+    flight_depTime = request.form.get('flight_depTime')
+    flight_ID = request.form.get('flight_ID')
+    flight_ticketPrice = request.form.get('flight_ticketPrice')
+    cardNum = request.form.get('cardNum')
+    cardType = request.form.get('cardType')
+    nameOfHolder = request.form.get('nameOfHolder')
+    expirationDate = request.form.get('expirationDate')
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("INSERT INTO ticket (flightName, flightNum, flightDepDate, flightDepTime, flightID, ticketPrice, cardNum, cardType, nameOfHolder, expirationDate) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", (flight_name, flight_flightNum, flight_depDate, flight_depTime, flight_ID, flight_ticketPrice, cardNum, cardType, nameOfHolder, expirationDate))
+            flight = cursor.fetchone()
+    finally:
+        connection.close()
+    return render_template('view_purchases.html', flight=flight, name=name, email=email, phone=phone, passport=passport)
+
 #redirect to review flights form
 @app.route('/ratings', methods=['GET'])
 def customer_rating():

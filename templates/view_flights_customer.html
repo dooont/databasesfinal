@@ -58,8 +58,22 @@
                 <td>{{ flight.basePrice }}</td>
                 <td>{{ flight.status }}</td>
                 <td>
-                    <button onclick="location.href='purchase_url/{{ flight.ID }}'">Purchase</button>
+                    <form action="flights-cust" method="post">
+                        <input type="hidden" name="flight_name" value="{{ flight.Name }}">
+                        <input type="hidden" name="flight_flightNum" value="{{ flight.flightNum }}">
+                        <input type="hidden" name="flight_depDate" value="{{ flight.depDate }}">
+                        <input type="hidden" name="flight_depTime" value="{{ flight.depTime }}">
+                        <input type="hidden" name="flight_depAirport" value="{{ flight.depAirport }}">
+                        <input type="hidden" name="flight_arrDate" value="{{ flight.arrDate }}">
+                        <input type="hidden" name="flight_arrTime" value="{{ flight.arrTime }}">
+                        <input type="hidden" name="flight_arrAirport" value="{{ flight.arrAirport }}">
+                        <input type="hidden" name="flight_id" value="{{ flight.ID }}">
+                        <input type="hidden" name="flight_basePrice" value="{{ flight.basePrice }}">
+                        <input type="hidden" name="flight_status" value="{{ flight.status }}">
+                        <button type="submit">Purchase</button>
+                    </form>
                 </td>
+
             </tr>
             {% endfor %}
         </tbody>
