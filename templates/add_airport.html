@@ -8,20 +8,20 @@
 <body>
     <h1>Add New Airport</h1>
     <form action="/add-airport" method="post">
-        <label for="airport_code">Airport Code:</label>
-        <input type="text" id="airport_code" name="airport_code">
+        <label for="airport_code">Airport ID:</label>
+        <input type="text" id="airport_code" name="airport_id" required>
         
         <label for="airport_name">Airport Name:</label>
-        <input type="text" id="airport_name" name="airport_name">
+        <input type="text" id="airport_name" name="airport_name" required>
         
         <label for="city">City:</label>
-        <input type="text" id="city" name="city">
+        <input type="text" id="city" name="airport_city" required>
         
         <label for="country">Country:</label>
-        <input type="text" id="country" name="country">
+        <input type="text" id="country" name="airport_country" required>
 
         <label for="terminals">Terminals:</label>
-        <input type="number" id="terminals" name="terminals">
+        <input type="number" id="terminals" name="terminals" required>
         
         <button type="submit">Add Airport</button>
     </form>
