@@ -4,6 +4,7 @@ from functools import wraps
 
 import pymysql.cursors
 
+
 app = Flask(__name__, static_folder="static")
 app.secret_key = 'whatever_you_want'
 
@@ -119,8 +120,23 @@ def customerLoginPost():
         connection.close()
     return render_template('customer_home.html', customer=customer)
 
+#view all airplanes
+@app.route('/airplanes', methods=['GET'])
+def airplanes():
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM airplanes")
+            airplane_records = cursor.fetchall()
+    finally:
+        connection.close()
+        
+    return render_template('view_airplanes.html', airplanes=airplane_records)
 
-
+#redirect to add_airplane.html
+@app.route('/add-airplane', methods=['GET'])
+def add_airplane():
+    return render_template('add_airplane.html')
 
 # Basic protected route example
 @app.route('/protected', methods=['GET'])
@@ -199,6 +215,7 @@ def flight_status():
 
 #customer queries
 #view my flights
+@app.route('/change to correct page', methods=['GET', 'POST'])
 @app.route('/change to correct page', methods=['GET', 'POST'])
 def view_myflights():
     today = datetime.today().strftime('%Y-%m-%d')
