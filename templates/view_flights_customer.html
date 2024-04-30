@@ -10,8 +10,8 @@
 <body>
     <h1>View Flights</h1>
     <form action="/flights" method="post">
-        <input type="radio" name="flight_type" value="one-way"  checked> One-way
-            <input type="radio" name="flight_type" value="round-trip"> Round-trip 
+        <input type="radio" name="flight_type" value="one-way" onChange="disableEndDate()" > One-way
+        <input type="radio" name="flight_type" value="round-trip" onChange="disableEndDate()" checked> Round-trip 
 
         <label for="start_date">Start Date:</label>
         <input type="date" id="start_date" name="start_date">
@@ -81,6 +81,28 @@
             {% endfor %}
         </tbody>
     </table>
+    <script>
+        function disableEndDate() {
+            var oneWayRadio = document.querySelector('input[value="one-way"]');
+            var roundTripRadio = document.querySelector('input[value="round-trip"]');
+            var endDateInput = document.getElementById('end_date');
+    
+            oneWayRadio.addEventListener('change', function() {
+                if (oneWayRadio.checked) {
+                    endDateInput.disabled = true;
+                }
+            });
+    
+            roundTripRadio.addEventListener('change', function() {
+                if (roundTripRadio.checked) {
+                    endDateInput.disabled = false;
+                }
+            });
+        }
+    
+        // Call the function to ensure the script executes when the page loads
+        window.onload = disableEndDate;
+    </script>
 </body>
 
 </html>
