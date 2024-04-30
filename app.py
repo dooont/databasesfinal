@@ -34,6 +34,7 @@ def index():
 #Customer Pages + What they can do ==========================================================================================
 @app.route('/customer-login', methods=['GET', 'POST'])
 def customer_login():
+    global customerLogged
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
@@ -41,11 +42,10 @@ def customer_login():
         try:
             with connection.cursor() as cursor:
                 cursor.execute("SELECT * FROM customer WHERE emailAddress = %s AND password = %s", (username, password))
-                customer = cursor.fetchone()
-                customerLogged = True
-                print(customerLogged)
+                cursor.fetchone()
         finally:
             connection.close()
+        customerLogged = True
         return redirect('/customer-home')
     else:
         return render_template('customer_login.html')
@@ -86,6 +86,7 @@ def customer_register():
 
 @app.route('/customer-home', methods=['GET', 'POST'])
 def customer_home():
+    global customerLogged
     if customerLogged:
         return render_template('customer_home.html')
     else:
@@ -159,11 +160,11 @@ def customer_rating_post():
 #tracking spending
 @app.route('/spending', methods=['GET', 'POST'])
 def track_spending():
-    name = request.form.get('name')
+    name = request.args.get('name', default='')
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT SUM(ticketPrice) FROM ticket where flightDepDate >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR) AND nameOfHolder = %s", (name))
+            cursor.execute("SELECT SUM(ticketPrice) FROM ticket where flightDepDate >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR) AND nameOfHolder = %s", (name,))
             result = cursor.fetchone()
             if result and result[0] is not None:
                 total_past_year = result[0]
@@ -216,6 +217,7 @@ def staff_login():
 #staff login post
 @app.route('/staff-login', methods=['POST'])
 def staffLoginPost():
+    global staffLogged
     username = request.form.get('username')
     password = request.form.get('password')
     connection = get_db_connection()
@@ -308,6 +310,7 @@ def filter_flights():
 #staff-home app route
 @app.route('/staff-home', methods=['GET', 'POST'])
 def staff_home():
+    global staffLogged
     if staffLogged:
         return render_template('staff_home.html')
     else:
@@ -497,6 +500,8 @@ def view_revenue():
 #logout app route
 @app.route('/logout', methods=['GET', 'POST'])
 def logout():
+    global customerLogged
+    global staffLogged
     customerLogged = False
     staffLogged = False
     return redirect('/')
