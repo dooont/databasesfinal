@@ -133,15 +133,23 @@ def customer_rating_post():
     ticketID = request.form.get('ticketID')
     rating = request.form.get('Rating')
     comment = request.form.get('Comment')
+    flightDate = request.form.get('flightDate')
+    flightDateStr = datetime.strptime(flightDate, '%Y-%m-%d').date()
+    tdyDate = datetime.now().date()
     connection = get_db_connection()
     
-    try:
-        with connection.cursor() as cursor:
-            cursor.execute("INSERT INTO review (emailAddress, ticketID, Rating, Comment) VALUES (%s, %s, %s, %s)", (email, ticketID, rating, comment))
-            connection.commit()
-    finally:
+    if(flightDateStr>tdyDate): #if flight is in future
         connection.close()
-    return redirect('/')
+        return redirect('/')
+    
+    else:
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("INSERT INTO review (emailAddress, ticketID, Rating, Comment) VALUES (%s, %s, %s, %s)", (email, ticketID, rating, comment))
+                connection.commit()
+        finally:
+            connection.close()
+        return redirect('/')
 
 
 #Staff Pages + What they can do =========================================================================================
