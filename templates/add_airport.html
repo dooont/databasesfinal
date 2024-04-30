@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Add New Airport</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <h1>Add New Airport</h1>
-    <form action="/add_airport" method="post">
+    <form action="/add-airport" method="post">
         <label for="airport_code">Airport Code:</label>
         <input type="text" id="airport_code" name="airport_code">
         
@@ -18,6 +19,9 @@
         
         <label for="country">Country:</label>
         <input type="text" id="country" name="country">
+
+        <label for="terminals">Terminals:</label>
+        <input type="number" id="terminals" name="terminals">
         
         <button type="submit">Add Airport</button>
     </form>
