@@ -127,6 +127,11 @@ def filter_flightsCustomer():
         
     return render_template('view_flights_customer.html', flights=flight_records)
 
+#redirect to purchase flights
+@app.route('/purchase', methods=['GET'])
+def customer_rating():
+    return render_template('view_flights_customer.html')
+
 @app.route('/purchase', methods=['POST'])
 def purchase():
     flight_name = request.form.get('flight_name')
@@ -135,14 +140,19 @@ def purchase():
     flight_depTime = request.form.get('flight_depTime')
     flight_ID = request.form.get('flight_ID')
     flight_ticketPrice = request.form.get('flight_ticketPrice')
-    cardNum = request.form.get('cardNum')
-    cardType = request.form.get('cardType')
-    nameOfHolder = request.form.get('nameOfHolder')
-    expirationDate = request.form.get('expirationDate')
+    cardNum = request.form.get('cardNum') #input by customer
+    cardType = request.form.get('cardType') #input by customer
+    nameOfHolder = request.form.get('nameOfHolder') #input by customer
+    expirationDate = request.form.get('expirationDate') #input by customer
+    email = request.form.get('email') #input by customer
+    now = datetime.now()
+    purchaseTime = now.strftime('%Y-%m-%d')
+    purchaseDate = now.strftime('%H:%M:%S')
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
             cursor.execute("INSERT INTO ticket (flightName, flightNum, flightDepDate, flightDepTime, flightID, ticketPrice, cardNum, cardType, nameOfHolder, expirationDate) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", (flight_name, flight_flightNum, flight_depDate, flight_depTime, flight_ID, flight_ticketPrice, cardNum, cardType, nameOfHolder, expirationDate))
+            cursor.execute("INSERT INTO purchase (CustomerEmail, flightName, flightNum, flightDepDate, flightDepTime, flightID, PurchaseTime, PurchaseDate) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",(email, flight_name, flight_flightNum, flight_depDate, flight_depTime, flight_ID, purchaseTime, purchaseDate))
             flight = cursor.fetchone()
     finally:
         connection.close()
@@ -295,10 +305,17 @@ def customers():
 #view all flights
 @app.route('/flights-staff', methods=['GET'])
 def flightsStaff():
+    username = session.get('username')
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM flight")
+            cursor.execute("SELECT Airline_Name FROM airlineStaff WHERE Username = %s", (username,))
+            result = cursor.fetchone()
+            if not result:
+                return "Airline not found for the user", 404
+
+            airline = result['Airline_Name']
+            cursor.execute("SELECT * FROM flight WHERE Name = %s", (airline))
             flight_records = cursor.fetchall()
     finally:
         connection.close()
