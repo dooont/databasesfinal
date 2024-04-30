@@ -10,6 +10,9 @@
 <body>
     <h1>View Flights</h1>
     <form action="/flights" method="post">
+        <input type="radio" name="flight_type" value="one-way"  checked> One-way
+            <input type="radio" name="flight_type" value="round-trip"> Round-trip 
+
         <label for="start_date">Start Date:</label>
         <input type="date" id="start_date" name="start_date">
 
@@ -58,7 +61,7 @@
                 <td>{{ flight.basePrice }}</td>
                 <td>{{ flight.status }}</td>
                 <td>
-                    <form action="flights-cust" method="post">
+                    <form action="/purchase" method="post">
                         <input type="hidden" name="flight_name" value="{{ flight.Name }}">
                         <input type="hidden" name="flight_flightNum" value="{{ flight.flightNum }}">
                         <input type="hidden" name="flight_depDate" value="{{ flight.depDate }}">
