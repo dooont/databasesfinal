@@ -220,15 +220,15 @@ def staff_home():
 def addAirplane():
     if request.method == 'POST':
         airplane_id = request.form.get('airplane_id')
-        manufacturing_comp = request.form.get('manufacturing_comp')
+        manufacturing_company = request.form.get('manufacturing_company')
         manufacturing_date = request.form.get('manufacturing_date')
-        airplane_capacity = request.form.get('airplane_capacity')
+        NumberOfSeats = request.form.get('number_of_seats')
         model_number = request.form.get('model_number')
-        AirlineName = request.form.get('AirlineName')
+        AirlineName = request.form.get('Airline_name')
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                cursor.execute("INSERT INTO airplanes (ID, ManufacturingCompany, airplane_type, airplane_capacity) VALUES (%s, %s, %s, %s)", (airplane_id, airplane_name, airplane_type, airplane_capacity))
+                cursor.execute("INSERT INTO airplanes (ID, ManufacturingCompany, ManfacturingDate, NumberOfSeats, ModelNumber, AirlineName) VALUES (%s, %s, %s, %s, %s, %s)", (airplane_id, manufacturing_company, manufacturing_date, NumberOfSeats, model_number, AirlineName))
                 connection.commit()
         finally:
             connection.close()
@@ -255,10 +255,11 @@ def addAirport():
         airport_name = request.form.get('airport_name')
         airport_city = request.form.get('airport_city')
         airport_country = request.form.get('airport_country')
+        terminal = request.form.get('terminal')
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                cursor.execute("INSERT INTO airport (airport_id, airport_name, airport_city, airport_country) VALUES (%s, %s, %s, %s)", (airport_id, airport_name, airport_city, airport_country))
+                cursor.execute("INSERT INTO airport (Code, Name, City, Country, Terminals) VALUES (%s, %s, %s, %s, %s)", (airport_id, airport_name, airport_city, airport_country, terminal))
                 connection.commit()
         finally:
             connection.close()
@@ -291,13 +292,15 @@ def changeFlightStatus():
 @app.route('/schedule-maintenance', methods=['GET', 'POST'])
 def scheduleMaintenance():
     if request.method == 'POST':
-        airplane_id = request.form.get('airplane_id')
         start_date = request.form.get('start_date')
+        start_time = request.form.get('start_time')
         end_date = request.form.get('end_date')
+        end_time = request.form.get('end_time')
+        airplane_id = request.form.get('airplane_id')
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                cursor.execute("INSERT INTO maintenance (airplane_id, start_date, end_date) VALUES (%s, %s, %s)", (airplane_id, start_date, end_date))
+                cursor.execute("INSERT INTO maintenance (Start_Date, Start_Time, End_Date, End_Time, AirplaneID) VALUES (%s, %s, %s, %s, %s)", (start_date, start_time, end_date, end_time, airplane_id))
                 connection.commit()
         finally:
             connection.close()
