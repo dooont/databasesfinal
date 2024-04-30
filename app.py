@@ -1,33 +1,75 @@
 from flask import Flask, redirect, render_template, request, session, url_for
-import pymysql.cursors
 from datetime import datetime, timedelta
+from functools import wraps
+from functools import wraps
+
+import pymysql.cursors
 
 
 app = Flask(__name__, static_folder="static")
 app.secret_key = 'whatever_you_want'
 
-# Handles GET form submission at the root URL
+def get_db_connection():
+    # Here, replace the placeholders with your actual database connection details
+    connection = pymysql.connect(host='localhost',
+                                port=3306,
+                                user='root',
+                                password='password',
+                                db='database_final',
+                                cursorclass=pymysql.cursors.DictCursor)
+    return connection
+
+# main page
 @app.route('/', methods=['GET'])
 def index():
     return render_template('index.html')
 
-# Handles POST form submission
+#redirect to customer login form
 @app.route('/customer-login', methods=['GET'])
 def customer_login():
     return render_template('customer_login.html')
 
+#redirect to customer registration form
 @app.route('/customer-register', methods=['GET'])
 def customer_register():
     return render_template('customer_register.html')
 
+
+#redirect to staff login
 @app.route('/staff-login', methods=['GET'])
 def staff_login():
     return render_template('staff_login.html')
 
+#staff registration form
 @app.route('/staff-register', methods=['GET'])
 def staff_register():
     return render_template('staff_register.html')
 
+
+#view all customers
+@app.route('/customers', methods=['GET'])
+def customers():
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM customer")
+            customer_records = cursor.fetchall()
+    finally:
+        connection.close()
+        
+    return render_template('view_customers.html', customers=customer_records)
+
+@app.route('/flights', methods=['GET'])
+def flights():
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM flight")
+            flight_records = cursor.fetchall()
+    finally:
+        connection.close()
+        
+    return render_template('view_flights.html', flights=flight_records)
 
 @app.route('/staff-login', methods=['POST'])
 def staffLoginPost():
@@ -75,7 +117,7 @@ def protectedGet():
         # otherwise redirect to somewhere else
         return render_template('unauthorized.html')
 
- #search for future flights
+# search for future flights
 @app.route('/search', methods=['GET', 'POST'])
 def search():
     depAirport = request.form.get('depAirport')
@@ -117,31 +159,30 @@ def search():
         cursor.close()
         return "An error occurred during the flight search"
     
-#flights status
+# flights status
 @app.route('/flight_status',methods=['GET','POST'])
 def flight_status():
     # grabs information from the forms
-	depAirport = request.form.get('depAirport',None)
-	arrAirport = request.form.get('arrAirport',None)
-	depDate = request.form.get('depDate',None)
-	arrDate = request.form.get('arrDate',None)
+    depAirport = request.form.get('depAirport',None)
+    arrAirport = request.form.get('arrAirport',None)
+    depDate = request.form.get('depDate',None)
+    arrDate = request.form.get('arrDate',None)
 
-	cursor = conn.cursor()
-	query = '''
-			SELECT AirlineName, flight.ID, depDate, depTime, arrDate,arrTime, status 
-			FROM flight, airplanes 
-			WHERE flight.ID = airplanes.ID 
-			AND dep_airport = %s 
-			AND arr_airport = %s 
-			AND dep_date = %s;'''
-			
-	cursor.execute(query, (depAirport, arrAirport, depDate)) #
-	data = cursor.fetchall() 
-	cursor.close()
-	return render_template('flight_status.html', flights=data)
+    cursor = conn.cursor()
+    query = '''
+            SELECT AirlineName, flight.ID, depDate, depTime, arrDate,arrTime, status 
+            FROM flight, airplanes 
+            WHERE flight.ID = airplanes.ID 
+            AND dep_airport = %s 
+            AND arr_airport = %s 
+            AND dep_date = %s;'''
+            
+    cursor.execute(query, (depAirport, arrAirport, depDate)) #
+    data = cursor.fetchall() 
+    cursor.close()
+    return render_template('flight_status.html', flights=data)
 
 
-from functools import wraps
 
 
 # # This is a decorator that will make the route only accessible to logged in users
@@ -180,11 +221,8 @@ if __name__ == '__main__':
 #view my flights
 @app.route('/change to correct page', methods=['GET', 'POST'])
 def view_myflights():
-	today = datetime.today().strftime('%Y-%m-%d')
-	future_date = (datetime.today() + timedelta(days = 180)).strftime('%Y-%m-%d')
-
-	start_date = request.form.get('start_date',today)
-	end_date = request.form.get('end_date',future_date)
+    today = datetime.today().strftime('%Y-%m-%d')
+    end_date = request.form.get('end_date', 'future_date')
 
 	cursor = conn.cursor()
 	query = '''

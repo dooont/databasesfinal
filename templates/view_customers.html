@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Customer Information</title>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='tables.css') }}">
+</head>
+<body>
+  <h1>Customer Information</h1>
+  <table>
+    <tr>  
+      <th>First Name</th>
+      <th>Last Name</th>
+      <th>Password</th>
+      <th>Building Number</th>
+      <th>Street Name</th>
+      <th>Apartment Number</th>
+      <th>City</th>
+      <th>State</th>
+      <th>Zip Code</th>
+      <th>Passport Number</th>
+      <th>Passport Expiration</th>
+      <th>Passport Country</th>
+      <th>Date of Birth</th>
+    </tr>
+    {% for customer in customers %}
+    <tr>
+      <td>{{ customer.firstName }}</td>
+      <td>{{ customer.lastName }}</td>
+      <td>{{ customer.password }}</td>
+      <td>{{ customer.buildingNumber }}</td>
+      <td>{{ customer.streetName }}</td>
+      <td>{{ customer.apartmentNumber }}</td>
+      <td>{{ customer.city }}</td>
+      <td>{{ customer.state }}</td>
+      <td>{{ customer.zipCode }}</td>
+      <td>{{ customer.passport_number }}</td>
+      <td>{{ customer.passport_expiration }}</td>
+      <td>{{ customer.passport_country }}</td>
+      <td>{{ customer.date_of_birth }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  </table>
+</body>
+</html>
