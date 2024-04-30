@@ -146,7 +146,7 @@ def customer_register_post():
     password = request.form.get('password')
     first_name = request.form.get('first-name')
     last_name = request.form.get('last-name')
-    date_of_birth = request.form.get('DOB')
+    date_of_birth = request.form.get('dob')
     airline_name = request.form.get('airline-name')
     emailAddress = request.form.get('email-address')
     phoneNumber = request.form.get('phone-number')
@@ -155,7 +155,7 @@ def customer_register_post():
     try:
         with connection.cursor() as cursor:
             #fix query to be correct
-            cursor.execute("INSERT INTO airlinestaff (Username, Password, first_name,last_name, DOB, Airline_Name) VALUES (%s, %s, %s, %s, %s, %s)", (username, password, first_name, last_name, date_of_birth, airline_name))
+            cursor.execute("INSERT INTO airlinestaff (Username, Password, first_name, last_name, DOB, Airline_Name) VALUES (%s, %s, %s, %s, %s, %s)", (username, password, first_name, last_name, date_of_birth, airline_name))
             cursor.execute("INSERT INTO airlinestaff_email(Username, emailAddress) VALUES (%s, %s)", (username, emailAddress))
             cursor.execute("INSERT INTO airlinestaff_phone(Username, Phone_number) VALUES (%s, %s)", (username, phoneNumber))
             connection.commit()
@@ -224,17 +224,18 @@ def addAirplane():
         manufacturing_date = request.form.get('manufacturing_date')
         NumberOfSeats = request.form.get('number_of_seats')
         model_number = request.form.get('model_number')
-        AirlineName = request.form.get('Airline_name')
+        AirlineName = request.form.get('airline_name')
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                cursor.execute("INSERT INTO airplanes (ID, ManufacturingCompany, ManfacturingDate, NumberOfSeats, ModelNumber, AirlineName) VALUES (%s, %s, %s, %s, %s, %s)", (airplane_id, manufacturing_company, manufacturing_date, NumberOfSeats, model_number, AirlineName))
+                cursor.execute("INSERT INTO airplanes (ID, ManufacturingCompany, ManufacturingDate, NumberOfSeats, ModelNumber, AirlineName) VALUES (%s, %s, %s, %s, %s, %s)", (airplane_id, manufacturing_company, manufacturing_date, NumberOfSeats, model_number, AirlineName))
                 connection.commit()
         finally:
             connection.close()
         return redirect('/airplanes')
     else:
         return render_template('add_airplane.html')#view airports route
+    
 @app.route('/airports', methods=['GET'])
 def airports():
     connection = get_db_connection()
@@ -253,13 +254,14 @@ def addAirport():
     if request.method == 'POST':
         airport_id = request.form.get('airport_id')
         airport_name = request.form.get('airport_name')
+        airport_type = request.form.get('airport_type')
         airport_city = request.form.get('airport_city')
         airport_country = request.form.get('airport_country')
         terminal = request.form.get('terminal')
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                cursor.execute("INSERT INTO airport (Code, Name, City, Country, Terminals) VALUES (%s, %s, %s, %s, %s)", (airport_id, airport_name, airport_city, airport_country, terminal))
+                cursor.execute("INSERT INTO airport (Code, Name, AirportType, City, Country, Terminals) VALUES (%s, %s, %s, %s, %s, %s)", (airport_id, airport_name, airport_type, airport_city, airport_country, terminal))
                 connection.commit()
         finally:
             connection.close()
@@ -267,20 +269,30 @@ def addAirport():
     else:
         return render_template('add_airport.html')
     
-
+@app.route('/airplanes', methods=['GET', 'POST'])
+def airplanes():
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM airplanes")
+            airplane_records = cursor.fetchall()
+    finally:
+        connection.close()
+        
+    return render_template('view_airplanes.html', airplanes=airplane_records)
 
 #change flight status
 @app.route('/change-flight-status', methods=['GET', 'POST'])
 def changeFlightStatus():
     if request.method == 'POST':
         flight_id = request.form.get('flight_id')
-        status = request.form.get('status')
+        status = request.form.get('new_status')
 
 
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                cursor.execute("UPDATE flight SET status = %s WHERE flight_id = %s", (status, flight_id))
+                cursor.execute("UPDATE flight SET status = %s WHERE flightNum = %s", (status, flight_id))
                 connection.commit()
         finally:
             connection.close()
