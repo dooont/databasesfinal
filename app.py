@@ -305,3 +305,82 @@ def my_flights():
 	return redirect(url_for('view_myflights'))
 
 #staff queries and all
+#view flights
+@app.route('/change to correct name', methods=['GET', 'POST'])
+def view_flights():
+	today = datetime.today().strftime('%Y-%m-%d')
+	future_date = (datetime.today() + timedelta(days=30)).strftime('%Y-%m-%d')
+
+	depAirport = request.form.get('depAirport')
+	arrAirport = request.form.get('arrAirport')
+	start_date = request.form.get('start_date')
+	end_date = request.form.get('end_date')
+ 
+
+	if not start_date:
+		start_date = today
+
+	if not end_date:
+		end_date = future_date
+
+	cursor = conn.cursor()
+	query = '''
+		SELECT  flighID, depDate, depTime, arrDate, arrTime, status, AirlineName
+		FROM flight
+		INNER JOIN airplane ON flight.ID = airplanes.ID
+		WHERE AirlineName IN (
+			SELECT airline_Name 
+			FROM airlinestaff
+			WHERE username = %s and
+			dep_date BETWEEN %s AND %s
+		)
+	'''
+	params = (session.get('username'),start_date, end_date,)
+
+	if depAirport and arrAirport :
+		query += 'AND depAirport = %s AND arrAirport = %s;'
+		params += (depAirport, arrAirport)
+	else:
+		query += ';'
+
+	cursor.execute(query, params)
+
+	data = cursor.fetchall() 
+	cursor.close()
+	return render_template('staff_dashboard.html', username = session['username'], airlineName = session['airlineName'], flights=data)
+
+#view customers of a particular flight
+@app.route('/change to correct name', methods=['GET', 'POST'])
+def view_customers():
+	flightNum = request.args.get('flightNum')
+
+	cursor = conn.cursor()
+
+	query = """SELECT nameOfHolder FROM ticket 
+				WHERE flightNum = %s;"""
+	
+	cursor.execute(query, (flightNum))
+	customers = cursor.fetchall()
+
+	cursor.close()
+	return render_template('view_customers.html', customers=customers)
+
+#view airplanes
+@app.route('/change to correct name', methods=['GET', 'POST'])
+def view_airplanes():
+	
+	cursor = conn.cursor()
+	query = '''
+		SELECT ID, ManufacturingCompany, ManufacturingDate, NumberOfSeats, ModelNumber
+		FROM airplane
+		WHERE AirlineName IN (
+			SELECT Airline_Name 
+			FROM airlinestaff
+			WHERE username = %s
+		);
+	'''
+	cursor.execute(query, session['username'])
+
+	data = cursor.fetchall() 
+	cursor.close()
+	return render_template('view_airplanes.html', username = session['username'], airplanes=data)
