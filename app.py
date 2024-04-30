@@ -116,7 +116,7 @@ def filter_flightsCustomer():
 #redirect to review flights form
 @app.route('/ratings', methods=['GET'])
 def customer_rating():
-    return render_template('customer_rating')
+    return render_template('customer_rating.html')
 
 #review flights post
 @app.route('/ratings', methods=['POST'])
