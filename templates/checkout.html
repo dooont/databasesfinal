@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    /* Add your CSS styles here */
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f2f2f2;
+    }
+
+    h1 {
+        color: #333;
+        text-align: center;
+    }
+
+    .customer.register-form {
+        margin: 20px auto;
+        max-width: 400px;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: bold;
+    }
+
+    input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+        margin-bottom: 10px;
+    }
+
+    input[type="submit"],
+    button {
+        background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    input[type="submit"]:hover,
+    button:hover {
+        background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <h1>Checkout Form</h1>
+  <div class="checkout">
+    <form action="/checkout" method="post">
+    <label for="cardNum">CardNum:</label>
+    <input type="text" id="cardNum" name="cardNum" required>
+
+    <label for="cardType">CardType:</label>
+    <input type="text" id="cardType" name="cardType" required>
+
+    <label for="nameOfHolder">NameOfHolder:</label>
+    <input type="text" id="nameOfHolder" name="nameOfHolder" required>
+
+    <label for="expirationDate">ExpirationDate:</label>
+    <input type="text" id="expirationDate" name="expirationDate" required>
+
+    <label for="email">Email:</label>
+    <input type="date" id="email" name="email">
+
+        <input type="submit" value="Register">
+    </form>
+</div>
+    <form method="get" action="/">
+    <button type="submit">Go Back Home</button>
+    </form>
+</body>
+</html>
