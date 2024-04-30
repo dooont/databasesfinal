@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <table style="border-collapse: collapse; width: 100%;">
+    <thead>
+        <tr>
+            <th style="border: 1px solid black; padding: 8px;">Start Date</th>
+            <th style="border: 1px solid black; padding: 8px;">Start Time</th>
+            <th style="border: 1px solid black; padding: 8px;">End Date</th>
+            <th style="border: 1px solid black; padding: 8px;">End Time</th>
+            <th style="border: 1px solid black; padding: 8px;">Airplane ID</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for main in mains %}
+        <tr>
+            <td style="border: 1px solid black; padding: 8px;">{{ main.Start_Date }}</td>
+            <td style="border: 1px solid black; padding: 8px;">{{ main.Start_Time }}</td>
+            <td style="border: 1px solid black; padding: 8px;">{{ main.End_Date}}</td>
+            <td style="border: 1px solid black; padding: 8px;">{{ main.End_Time }}</td>
+            <td style="border: 1px solid black; padding: 8px;">{{ main.AirplaneID }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>

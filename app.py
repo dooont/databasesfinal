@@ -300,6 +300,45 @@ def changeFlightStatus():
     else:
         return render_template('change_status.html')
 
+#create flight route
+@app.route('/create-flight', methods=['GET', 'POST'])
+def createFlight():
+    if request.method == 'POST':
+        airline = request.form.get('airline')
+        flight_id = request.form.get('flight_number')
+        airplane_id = request.form.get('aircraft_id')
+        dep_airport = request.form.get('departure_airport')
+        arr_airport = request.form.get('arrival_airport')
+        dep_date = request.form.get('departure_date')
+        dep_time = request.form.get('departure_time')
+        arr_date = request.form.get('arrival_date')
+        arr_time = request.form.get('arrival_time')
+        price = request.form.get('price')
+        status = "on-time"
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("INSERT INTO flight (Name, flightNum, depAirport, arrAirport, depDate, depTime, arrDate, arrTime, ID, basePrice, status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (airline, flight_id, dep_airport, arr_airport, dep_date, dep_time, arr_date, arr_time, airplane_id, price, status))
+                connection.commit()
+        finally:
+            connection.close()
+        return redirect('/flights')
+    else:
+        return render_template('create_flight.html')
+
+#maintenance route
+@app.route('/view-maintenance', methods=['GET', 'POST'])
+def view_maintenance():
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM maintenance")
+            maintenance_records = cursor.fetchall()
+    finally:
+        connection.close()
+        
+    return render_template('view_maintenance.html', mains=maintenance_records)
+
 #schedule maintenance route
 @app.route('/schedule-maintenance', methods=['GET', 'POST'])
 def scheduleMaintenance():
@@ -316,7 +355,7 @@ def scheduleMaintenance():
                 connection.commit()
         finally:
             connection.close()
-        return redirect('/airplanes')
+        return redirect('/view-maintenance')
     else:
         return render_template('schedule_maintenance.html')
 

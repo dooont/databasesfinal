@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Schedule Flight</title>
+    <title>Schedule Maintenance</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -46,22 +46,22 @@
 </head>
 <body>
     <div class="form-container">
-        <h1>Schedule Flight</h1>
-        <form action="/submit_schedule" method="post">
+        <h1>Schedule Maintenance</h1>
+        <form action="/schedule-maintenance" method="post">
             <label for="start_date">Start Date:</label>
-            <input type="date" id="start_date" name="Start_Date" required>
+            <input type="date" id="start_date" name="start_date" required>
 
             <label for="start_time">Start Time:</label>
-            <input type="time" id="start_time" name="Start_Time" required>
+            <input type="time" id="start_time" name="start_time" required>
 
             <label for="end_date">End Date:</label>
-            <input type="date" id="end_date" name="End_Date" required>
+            <input type="date" id="end_date" name="end_date" required>
 
             <label for="end_time">End Time:</label>
-            <input type="time" id="end_time" name="End_Time" required>
+            <input type="time" id="end_time" name="end_time" required>
 
             <label for="airplane_id">Airplane ID:</label>
-            <input type="text" id="airplane_id" name="AirplaneID" required>
+            <input type="text" id="airplane_id" name="airplane_id" required>
 
             <button type="submit">Submit</button>
         </form>
