@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>View and Manage Flights</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='tables.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='tables.css') }}">   
 </head>
 <body>
     <h1>View Flights</h1>
@@ -20,6 +20,9 @@
         <label for="destination">Destination Airport/City:</label>
         <input type="text" id="destination" name="destination">
         
+        <input type="radio" name="flight_type" value="one-way" onChange="disableEndDate()"> One-way
+        <input type="radio" name="flight_type" value="round-trip" onChange="disableEndDate()" checked> Round-trip
+
         <button type="submit">Search Flights</button>
     </form>
     
@@ -58,5 +61,27 @@
             {% endfor %}
         </tbody>
     </table>
+    <script>
+        function disableEndDate() {
+            var oneWayRadio = document.querySelector('input[value="one-way"]');
+            var roundTripRadio = document.querySelector('input[value="round-trip"]');
+            var endDateInput = document.getElementById('end_date');
+    
+            oneWayRadio.addEventListener('change', function() {
+                if (oneWayRadio.checked) {
+                    endDateInput.disabled = true;
+                }
+            });
+    
+            roundTripRadio.addEventListener('change', function() {
+                if (roundTripRadio.checked) {
+                    endDateInput.disabled = false;
+                }
+            });
+        }
+    
+        // Call the function to ensure the script executes when the page loads
+        window.onload = disableEndDate;
+    </script>
 </body>
 </html>

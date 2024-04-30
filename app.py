@@ -529,7 +529,9 @@ def logout():
     global customerLogged
     global staffLogged
     customerLogged = False
+    print(customerLogged)
     staffLogged = False
+    print("logged out")
     return redirect('/')
 
 if __name__ == '__main__':
