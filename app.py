@@ -127,7 +127,7 @@ def filter_flightsCustomer():
         
     return render_template('view_flights_customer.html', flights=flight_records)
 
-@app.route('/flights-cust', methods=['POST'])
+@app.route('/purchase', methods=['POST'])
 def purchase():
     flight_name = request.form.get('flight_name')
     flight_flightNum = request.form.get('flight_flightNum')
