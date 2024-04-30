@@ -46,7 +46,7 @@ def customer_login():
                 print(customerLogged)
         finally:
             connection.close()
-        return render_template('customer_home.html', customer=customer)
+        return redirect('/customer-home')
     else:
         return render_template('customer_login.html')
 
