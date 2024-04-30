@@ -265,8 +265,16 @@ def staffLoginPost():
             staff = cursor.fetchone()
     finally:
         connection.close()
-    staffLogged = True
-    return render_template('staff_home.html', staff=staff)
+        
+    if staff:
+        # If staff member is found, set the session variables
+        session['staff_logged'] = True
+        session['staff_username'] = staff['Username'] 
+        return render_template('staff_home.html', staff=staff)
+    else:
+        # If no staff is found, handle login failure
+        session['staff_logged'] = False
+        return redirect(url_for('login_page', error='Invalid credentials'))
 
 # staff registration form
 @app.route('/staff-register', methods=['GET'])
@@ -313,7 +321,7 @@ def customers():
 #view all flights
 @app.route('/flights-staff', methods=['GET'])
 def flightsStaff():
-    username = session.get('username')
+    username = session.get('staff_username')
     print(username)
     connection = get_db_connection()
     try:
