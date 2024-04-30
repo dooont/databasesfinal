@@ -42,11 +42,13 @@ def customer_login():
             with connection.cursor() as cursor:
                 cursor.execute("SELECT * FROM customer WHERE emailAddress = %s AND password = %s", (username, password))
                 customer = cursor.fetchone()
+                customerLogged = True
+                print(customerLogged)
         finally:
             connection.close()
-        customerLogged = True
         return render_template('customer_home.html', customer=customer)
-    return render_template('customer_login.html')
+    else:
+        return render_template('customer_login.html')
 
 # redirect to customer registration form
 @app.route('/customer-register', methods=['GET', 'POST'])
@@ -154,6 +156,49 @@ def customer_rating_post():
             connection.close()
         return redirect('/')
 
+#tracking spending
+@app.route('/spending', methods=['GET', 'POST'])
+def track_spending():
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT SUM(ticketPrice) FROM ticket where flightDepDate >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)")
+            fetch_result = cursor.fetchone()
+            total_past_year = fetch_result[0] if fetch_result is not None else 0
+            
+            monthly_spending_query = """
+            SELECT YEAR(flightDepDate), MONTH(flightDepDate), SUM(ticketPrice)
+            FROM ticket
+            WHERE flightDepDate >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+            GROUP BY YEAR(flightDepDate), MONTH(flightDepDate)
+            ORDER BY YEAR(flightDepDate), MONTH(flightDepDate)
+            """
+
+            cursor.execute(monthly_spending_query)
+            monthly_data = cursor.fetchall()
+            
+            if request.method == 'POST':
+                start_date = request.form['start_date']
+                end_date = request.form['end_date']
+                cursor.execute("SELECT SUM(ticketPrice) FROM Ticket WHERE flightDepDate BETWEEN %s AND %s", (start_date, end_date))
+                range_total = cursor.fetchone()[0] or 0
+                monthly_range_query = """
+                SELECT YEAR(flightDepDate), MONTH(flightDepDate), SUM(ticketPrice)
+                FROM Ticket
+                WHERE flightDepDate BETWEEN %s AND %s
+                GROUP BY YEAR(flightDepDate), MONTH(flightDepDate)
+                ORDER BY YEAR(flightDepDate), MONTH(flightDepDate)
+                """
+                cursor.execute(monthly_range_query, (start_date, end_date))
+                range_monthly_data = cursor.fetchall()
+                #connection.commit()
+                return render_template('spending.html', total_past_year=total_past_year, monthly_data=monthly_data, range_total=range_total, range_monthly_data=range_monthly_data)
+            
+        
+    finally:
+        connection.close()
+    
+    return render_template('spending.html', total_past_year=total_past_year, monthly_data=monthly_data, range_total=None, range_monthly_data=None)
 
 #Staff Pages + What they can do =========================================================================================
 
