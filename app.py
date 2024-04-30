@@ -165,7 +165,7 @@ def track_spending():
         with connection.cursor() as cursor:
             cursor.execute("SELECT SUM(ticketPrice) FROM ticket where flightDepDate >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR) AND nameOfHolder = %s", (name))
             result = cursor.fetchone()
-            if result:
+            if result and result[0] is not None:
                 total_past_year = result[0]
             else:
                 total_past_year = 0
