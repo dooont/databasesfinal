@@ -4,6 +4,13 @@ from functools import wraps
 
 import pymysql.cursors
 
+staffAirline = ''
+staffUsername = ''
+customerLogged = False
+staffLogged = False
+
+#if they logout, they shouldn't be able to go back
+#implement as much logic as possible in the backend
 
 app = Flask(__name__, static_folder="static")
 app.secret_key = 'whatever_you_want'
@@ -35,10 +42,13 @@ def customer_login():
             with connection.cursor() as cursor:
                 cursor.execute("SELECT * FROM customer WHERE emailAddress = %s AND password = %s", (username, password))
                 customer = cursor.fetchone()
+                customerLogged = True
+                print(customerLogged)
         finally:
             connection.close()
-        return render_template('customer_home.html', customer=customer)
-    return render_template('customer_login.html')
+        return redirect('/customer-home')
+    else:
+        return render_template('customer_login.html')
 
 # redirect to customer registration form
 @app.route('/customer-register', methods=['GET', 'POST'])
@@ -76,7 +86,10 @@ def customer_register():
 
 @app.route('/customer-home', methods=['GET', 'POST'])
 def customer_home():
-    return render_template('customer_home.html')
+    if customerLogged:
+        return render_template('customer_home.html')
+    else:
+        return redirect('/')
 
 @app.route('/flights', methods=['GET'])
 def flightsCustomer():
@@ -113,6 +126,83 @@ def filter_flightsCustomer():
         
     return render_template('view_flights_customer.html', flights=flight_records)
 
+#redirect to review flights form
+@app.route('/ratings', methods=['GET'])
+def customer_rating():
+    return render_template('customer_rating.html')
+
+#review flights post
+@app.route('/ratings', methods=['POST'])
+def customer_rating_post():
+    email = request.form.get('Email')
+    ticketID = request.form.get('ticketID')
+    rating = request.form.get('Rating')
+    comment = request.form.get('Comment')
+    flightDate = request.form.get('flightDate')
+    flightDateStr = datetime.strptime(flightDate, '%Y-%m-%d').date()
+    tdyDate = datetime.now().date()
+    connection = get_db_connection()
+    
+    if(flightDateStr>tdyDate): #if flight is in future
+        connection.close()
+        return redirect('/')
+    
+    else:
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("INSERT INTO review (emailAddress, ticketID, Rating, Comment) VALUES (%s, %s, %s, %s)", (email, ticketID, rating, comment))
+                connection.commit()
+        finally:
+            connection.close()
+        return redirect('/')
+
+#tracking spending
+@app.route('/spending', methods=['GET', 'POST'])
+def track_spending():
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT SUM(ticketPrice) FROM ticket where flightDepDate >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)")
+            result = cursor.fetchone()
+            if result:
+                total_past_year = result[0]
+            else:
+                total_past_year = 0
+            
+            monthly_spending_query = """
+            SELECT YEAR(flightDepDate), MONTH(flightDepDate), SUM(ticketPrice)
+            FROM ticket
+            WHERE flightDepDate >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+            GROUP BY YEAR(flightDepDate), MONTH(flightDepDate)
+            ORDER BY YEAR(flightDepDate), MONTH(flightDepDate)
+            """
+
+            cursor.execute(monthly_spending_query)
+            monthly_data = cursor.fetchall()
+            
+            if request.method == 'POST':
+                start_date = request.form['start_date']
+                end_date = request.form['end_date']
+                cursor.execute("SELECT SUM(ticketPrice) FROM Ticket WHERE flightDepDate BETWEEN %s AND %s", (start_date, end_date))
+                range_total = cursor.fetchone()[0] or 0
+                monthly_range_query = """
+                SELECT YEAR(flightDepDate), MONTH(flightDepDate), SUM(ticketPrice)
+                FROM Ticket
+                WHERE flightDepDate BETWEEN %s AND %s
+                GROUP BY YEAR(flightDepDate), MONTH(flightDepDate)
+                ORDER BY YEAR(flightDepDate), MONTH(flightDepDate)
+                """
+                cursor.execute(monthly_range_query, (start_date, end_date))
+                range_monthly_data = cursor.fetchall()
+                #connection.commit()
+                return render_template('spending.html', total_past_year=total_past_year, monthly_data=monthly_data, range_total=range_total, range_monthly_data=range_monthly_data)
+            
+        
+    finally:
+        connection.close()
+    
+    return render_template('spending.html', total_past_year=total_past_year, monthly_data=monthly_data, range_total=None, range_monthly_data=None)
+
 #Staff Pages + What they can do =========================================================================================
 
 # redirect to staff login
@@ -132,6 +222,7 @@ def staffLoginPost():
             staff = cursor.fetchone()
     finally:
         connection.close()
+    staffLogged = True
     return render_template('staff_home.html', staff=staff)
 
 # staff registration form
@@ -214,7 +305,10 @@ def filter_flights():
 #staff-home app route
 @app.route('/staff-home', methods=['GET', 'POST'])
 def staff_home():
-    return render_template('staff_home.html')
+    if staffLogged:
+        return render_template('staff_home.html')
+    else:
+        return redirect('/')
 
 @app.route('/add-airplane', methods=['GET', 'POST'])
 def addAirplane():
@@ -300,6 +394,45 @@ def changeFlightStatus():
     else:
         return render_template('change_status.html')
 
+#create flight route
+@app.route('/create-flight', methods=['GET', 'POST'])
+def createFlight():
+    if request.method == 'POST':
+        airline = request.form.get('airline')
+        flight_id = request.form.get('flight_number')
+        airplane_id = request.form.get('aircraft_id')
+        dep_airport = request.form.get('departure_airport')
+        arr_airport = request.form.get('arrival_airport')
+        dep_date = request.form.get('departure_date')
+        dep_time = request.form.get('departure_time')
+        arr_date = request.form.get('arrival_date')
+        arr_time = request.form.get('arrival_time')
+        price = request.form.get('price')
+        status = "on-time"
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("INSERT INTO flight (Name, flightNum, depAirport, arrAirport, depDate, depTime, arrDate, arrTime, ID, basePrice, status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (airline, flight_id, dep_airport, arr_airport, dep_date, dep_time, arr_date, arr_time, airplane_id, price, status))
+                connection.commit()
+        finally:
+            connection.close()
+        return redirect('/flights')
+    else:
+        return render_template('create_flight.html')
+
+#maintenance route
+@app.route('/view-maintenance', methods=['GET', 'POST'])
+def view_maintenance():
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM maintenance")
+            maintenance_records = cursor.fetchall()
+    finally:
+        connection.close()
+        
+    return render_template('view_maintenance.html', mains=maintenance_records)
+
 #schedule maintenance route
 @app.route('/schedule-maintenance', methods=['GET', 'POST'])
 def scheduleMaintenance():
@@ -316,7 +449,7 @@ def scheduleMaintenance():
                 connection.commit()
         finally:
             connection.close()
-        return redirect('/airplanes')
+        return redirect('/view-maintenance')
     else:
         return render_template('schedule_maintenance.html')
 
@@ -325,6 +458,8 @@ def scheduleMaintenance():
 #logout app route
 @app.route('/logout', methods=['GET', 'POST'])
 def logout():
+    customerLogged = False
+    staffLogged = False
     return redirect('/')
 
 if __name__ == '__main__':
