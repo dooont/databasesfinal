@@ -159,10 +159,11 @@ def customer_rating_post():
 #tracking spending
 @app.route('/spending', methods=['GET', 'POST'])
 def track_spending():
+    name = request.form.get('name')
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT SUM(ticketPrice) FROM ticket where flightDepDate >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)")
+            cursor.execute("SELECT SUM(ticketPrice) FROM ticket where flightDepDate >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR) AND nameOfHolder = %s", (name))
             result = cursor.fetchone()
             if result:
                 total_past_year = result[0]
@@ -173,11 +174,12 @@ def track_spending():
             SELECT YEAR(flightDepDate), MONTH(flightDepDate), SUM(ticketPrice)
             FROM ticket
             WHERE flightDepDate >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+            AND nameOfHolder = %s
             GROUP BY YEAR(flightDepDate), MONTH(flightDepDate)
             ORDER BY YEAR(flightDepDate), MONTH(flightDepDate)
             """
 
-            cursor.execute(monthly_spending_query)
+            cursor.execute(monthly_spending_query,(name))
             monthly_data = cursor.fetchall()
             
             if request.method == 'POST':
@@ -189,10 +191,11 @@ def track_spending():
                 SELECT YEAR(flightDepDate), MONTH(flightDepDate), SUM(ticketPrice)
                 FROM Ticket
                 WHERE flightDepDate BETWEEN %s AND %s
+                AND nameOfHolder = %s
                 GROUP BY YEAR(flightDepDate), MONTH(flightDepDate)
                 ORDER BY YEAR(flightDepDate), MONTH(flightDepDate)
                 """
-                cursor.execute(monthly_range_query, (start_date, end_date))
+                cursor.execute(monthly_range_query, (start_date, end_date, name))
                 range_monthly_data = cursor.fetchall()
                 #connection.commit()
                 return render_template('spending.html', total_past_year=total_past_year, monthly_data=monthly_data, range_total=range_total, range_monthly_data=range_monthly_data)
