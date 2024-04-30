@@ -458,36 +458,38 @@ def scheduleMaintenance():
     
 @app.route('/revenue', methods=['GET', 'POST'])
 def view_revenue():
-    flight_name = request.form.get('flightName')
+    flight_name = request.args.get('flightName', default='')
     connection = get_db_connection()
-    try:
-        with connection.cursor() as cursor:
-            last_month_query = """
-            SELECT SUM(ticketPrice)
-            FROM ticket
-            WHERE flightDepDate BETWEEN DATE_SUB(CURDATE(), INTERVAL 1 MONTH) AND CURDATE()
-            AND flightName = %s
-            """
-            cursor.execute(last_month_query, (flight_name,))
-            result = cursor.fetchone()
-            last_month_revenue = result[0] if result and result[0] is not None else 0
+    if request.method == 'GET':
+        try:
+            with connection.cursor() as cursor:
+                last_month_query = """
+                SELECT SUM(ticketPrice)
+                FROM ticket
+                WHERE flightDepDate BETWEEN DATE_SUB(CURDATE(), INTERVAL 1 MONTH) AND CURDATE()
+                AND flightName = %s
+                """
+                cursor.execute(last_month_query, (flight_name,))
+                result = cursor.fetchone()
+                last_month_revenue = result[0] if result and result[0] is not None else 0
 
-            # Fetch total revenue from the last year filtered by flightName
-            last_year_query = """
-            SELECT SUM(ticketPrice)
-            FROM ticket
-            WHERE flightDepDate BETWEEN DATE_SUB(CURDATE(), INTERVAL 1 YEAR) AND CURDATE()
-            AND flightName = %s
-            """
-            cursor.execute(last_year_query, (flight_name,))
-            result = cursor.fetchone()
-            last_year_revenue = result[0] if result and result[0] is not None else 0
+                # Fetch total revenue from the last year filtered by flightName
+                last_year_query = """
+                SELECT SUM(ticketPrice)
+                FROM ticket
+                WHERE flightDepDate BETWEEN DATE_SUB(CURDATE(), INTERVAL 1 YEAR) AND CURDATE()
+                AND flightName = %s
+                """
+                cursor.execute(last_year_query, (flight_name,))
+                result = cursor.fetchone()
+                last_year_revenue = result[0] if result and result[0] is not None else 0
 
-    finally:
-        connection.close()
-    
-    # Render a template to display the revenues
-    return render_template('revenue.html', flight_name=flight_name, last_month_revenue=last_month_revenue, last_year_revenue=last_year_revenue)
+        finally:
+            connection.close()
+        # Render a template to display the revenues
+        return render_template('revenue.html', flight_name=flight_name, last_month_revenue=last_month_revenue, last_year_revenue=last_year_revenue)
+    else:
+        return render_template('revenue.html', flight_name=flight_name, last_month_revenue=None, last_year_revenue=None)
 
 #Both Staff and Customer =========================================================================================
 
