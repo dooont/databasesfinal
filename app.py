@@ -9,7 +9,6 @@ staffUsername = ''
 customerLogged = False
 staffLogged = False
 
-#BE ABLE TO SEARCH FOR FLIGHTS ON THE MAIN PAGE
 #if they logout, they shouldn't be able to go back
 #implement as much logic as possible in the backend
 
@@ -45,6 +44,7 @@ def customer_login():
                 customer = cursor.fetchone()
         finally:
             connection.close()
+        customerLogged = True
         return render_template('customer_home.html', customer=customer)
     return render_template('customer_login.html')
 
@@ -84,7 +84,10 @@ def customer_register():
 
 @app.route('/customer-home', methods=['GET', 'POST'])
 def customer_home():
-    return render_template('customer_home.html')
+    if customerLogged:
+        return render_template('customer_home.html')
+    else:
+        return redirect('/')
 
 @app.route('/flights', methods=['GET'])
 def flightsCustomer():
@@ -171,6 +174,7 @@ def staffLoginPost():
             staff = cursor.fetchone()
     finally:
         connection.close()
+    staffLogged = True
     return render_template('staff_home.html', staff=staff)
 
 # staff registration form
@@ -253,7 +257,10 @@ def filter_flights():
 #staff-home app route
 @app.route('/staff-home', methods=['GET', 'POST'])
 def staff_home():
-    return render_template('staff_home.html')
+    if staffLogged:
+        return render_template('staff_home.html')
+    else:
+        return redirect('/')
 
 @app.route('/add-airplane', methods=['GET', 'POST'])
 def addAirplane():
@@ -403,6 +410,8 @@ def scheduleMaintenance():
 #logout app route
 @app.route('/logout', methods=['GET', 'POST'])
 def logout():
+    customerLogged = False
+    staffLogged = False
     return redirect('/')
 
 if __name__ == '__main__':
