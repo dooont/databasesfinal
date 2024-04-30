@@ -25,50 +25,60 @@ def index():
 
 
 #Customer Pages + What they can do ==========================================================================================
-@app.route('/customer-login', methods=['GET'])
+@app.route('/customer-login', methods=['GET', 'POST'])
 def customer_login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT * FROM customer WHERE emailAddress = %s AND password = %s", (username, password))
+                customer = cursor.fetchone()
+        finally:
+            connection.close()
+        return render_template('customer_home.html', customer=customer)
     return render_template('customer_login.html')
 
 # redirect to customer registration form
-@app.route('/customer-register', methods=['GET'])
+@app.route('/customer-register', methods=['GET', 'POST'])
 def customer_register():
-    return render_template('customer_register.html')
+    if request.method == 'POST':
+        username = request.form.get('emailAddress')
+        password = request.form.get('password')
+        first_name = request.form.get('firstName')
+        last_name = request.form.get('lastName')
+        building_number = request.form.get('buildingNumber')
+        street_name = request.form.get('streetName')
+        apartment_number = request.form.get('apartmentNumber')
+        city = request.form.get('city')
+        state = request.form.get('state')
+        zip_code = request.form.get('zip_code')
+        passport_number = request.form.get('passport_number')
+        passport_expiration = request.form.get('passport_expiration')
+        passport_country = request.form.get('passport_country')
+        date_of_birth = request.form.get('date_of_birth')
+        phone_number = request.form.get("phoneNumber")
 
-# customer registration post
-@app.route('/customer-register', methods=['POST'])
-def customer_register_post():
-    username = request.form.get('emailAddress')
-    password = request.form.get('password')
-    first_name = request.form.get('firstName')
-    last_name = request.form.get('lastName')
-    building_number = request.form.get('buildingNumber')
-    street_name = request.form.get('streetName')
-    apartment_number = request.form.get('apartmentNumber')
-    city = request.form.get('city')
-    state = request.form.get('state')
-    zip_code = request.form.get('zip_code')
-    passport_number = request.form.get('passport_number')
-    passport_expiration = request.form.get('passport_expiration')
-    passport_country = request.form.get('passport_country')
-    date_of_birth = request.form.get('date_of_birth')
-    phone_number = request.form.get("phoneNumber")
-
-    connection = get_db_connection()
-    try:
-        with connection.cursor() as cursor:
-            #fix query to be correct
-            cursor.execute("INSERT INTO customer (emailAddress, firstName, lastName, password, buildingNumber, streetName, apartmentNumber, city, state, zipCode, passport_number, passport_expiration, passport_country, date_of_birth) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (username, first_name, last_name, password, building_number, street_name, apartment_number, city, state, zip_code, passport_number, passport_expiration, passport_country, date_of_birth))
-            cursor.execute("INSERT INTO customer_contact_info (emailAddress, phoneNumber) VALUES (%s, %s)", (username, phone_number))
-            connection.commit()
-    finally:
-        connection.close()
-    return redirect('/')
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                #fix query to be correct
+                sql = "INSERT INTO customer (emailAddress, firstName, lastName, password, buildingNumber, streetName, apartmentNumber, city, state, zipCode, passport_number, passport_expiration, passport_country, date_of_birth) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                cursor.execute(sql, (username, first_name, last_name, password, building_number, street_name, apartment_number, city, state, zip_code, passport_number, passport_expiration, passport_country, date_of_birth))
+                cursor.execute("INSERT INTO customer_contact_info (emailAddress, phoneNumber) VALUES (%s, %s)", (username, phone_number))
+                connection.commit()
+        finally:
+            connection.close()
+        return redirect('/')
+    else:
+        return render_template('customer_register.html')    
 
 @app.route('/customer-home', methods=['GET', 'POST'])
 def customer_home():
     return render_template('customer_home.html')
 
-@app.route('/flights-', methods=['GET'])
+@app.route('/flights', methods=['GET'])
 def flightsCustomer():
     connection = get_db_connection()
     try:
@@ -78,7 +88,7 @@ def flightsCustomer():
     finally:
         connection.close()
         
-    return render_template('view_flights_custome.html', flights=flight_records)
+    return render_template('view_flights_customer.html', flights=flight_records)
 
 #filter flights
 @app.route('/flights', methods=['POST'])
@@ -206,24 +216,19 @@ def filter_flights():
 def staff_home():
     return render_template('staff_home.html')
 
-#logout app route
-@app.route('/logout', methods=['GET', 'POST'])
-def logout():
-    return redirect('/')
-
 @app.route('/add-airplane', methods=['GET', 'POST'])
 def addAirplane():
     if request.method == 'POST':
         airplane_id = request.form.get('airplane_id')
-        manufacturing_comp = request.form.get('manufacturing_comp')
+        manufacturing_company = request.form.get('manufacturing_company')
         manufacturing_date = request.form.get('manufacturing_date')
-        airplane_capacity = request.form.get('airplane_capacity')
+        NumberOfSeats = request.form.get('number_of_seats')
         model_number = request.form.get('model_number')
-        AirlineName = request.form.get('AirlineName')
+        AirlineName = request.form.get('Airline_name')
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                cursor.execute("INSERT INTO airplanes (ID, ManufacturingCompany, airplane_type, airplane_capacity) VALUES (%s, %s, %s, %s)", (airplane_id, airplane_name, airplane_type, airplane_capacity))
+                cursor.execute("INSERT INTO airplanes (ID, ManufacturingCompany, ManfacturingDate, NumberOfSeats, ModelNumber, AirlineName) VALUES (%s, %s, %s, %s, %s, %s)", (airplane_id, manufacturing_company, manufacturing_date, NumberOfSeats, model_number, AirlineName))
                 connection.commit()
         finally:
             connection.close()
@@ -250,10 +255,11 @@ def addAirport():
         airport_name = request.form.get('airport_name')
         airport_city = request.form.get('airport_city')
         airport_country = request.form.get('airport_country')
+        terminal = request.form.get('terminal')
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                cursor.execute("INSERT INTO airport (airport_id, airport_name, airport_city, airport_country) VALUES (%s, %s, %s, %s)", (airport_id, airport_name, airport_city, airport_country))
+                cursor.execute("INSERT INTO airport (Code, Name, City, Country, Terminals) VALUES (%s, %s, %s, %s, %s)", (airport_id, airport_name, airport_city, airport_country, terminal))
                 connection.commit()
         finally:
             connection.close()
@@ -286,13 +292,15 @@ def changeFlightStatus():
 @app.route('/schedule-maintenance', methods=['GET', 'POST'])
 def scheduleMaintenance():
     if request.method == 'POST':
-        airplane_id = request.form.get('airplane_id')
         start_date = request.form.get('start_date')
+        start_time = request.form.get('start_time')
         end_date = request.form.get('end_date')
+        end_time = request.form.get('end_time')
+        airplane_id = request.form.get('airplane_id')
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                cursor.execute("INSERT INTO maintenance (airplane_id, start_date, end_date) VALUES (%s, %s, %s)", (airplane_id, start_date, end_date))
+                cursor.execute("INSERT INTO maintenance (Start_Date, Start_Time, End_Date, End_Time, AirplaneID) VALUES (%s, %s, %s, %s, %s)", (start_date, start_time, end_date, end_time, airplane_id))
                 connection.commit()
         finally:
             connection.close()
