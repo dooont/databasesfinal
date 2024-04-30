@@ -295,10 +295,17 @@ def customers():
 #view all flights
 @app.route('/flights-staff', methods=['GET'])
 def flightsStaff():
+    username = session.get('username')
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM flight")
+            cursor.execute("SELECT Airline_Name FROM airlineStaff WHERE Username = %s", (username,))
+            result = cursor.fetchone()
+            if not result:
+                return "Airline not found for the user", 404
+
+            airline = result['Airline_Name']
+            cursor.execute("SELECT * FROM flight WHERE Name = %s", (airline))
             flight_records = cursor.fetchall()
     finally:
         connection.close()
