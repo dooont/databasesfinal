@@ -58,6 +58,17 @@ def customers():
         
     return render_template('view_customers.html', customers=customer_records)
 
+@app.route('/flights', methods=['GET'])
+def flights():
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM flight")
+            flight_records = cursor.fetchall()
+    finally:
+        connection.close()
+        
+    return render_template('view_flights.html', flights=flight_records)
 
 @app.route('/staff-login', methods=['POST'])
 def staffLoginPost():
