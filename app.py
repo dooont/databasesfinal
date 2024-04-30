@@ -176,7 +176,7 @@ from functools import wraps
 if __name__ == '__main__':
     app.run(debug=True)
 
-#customer queries/pages
+#customer queries
 #view my flights
 @app.route('/change to correct page', methods=['GET', 'POST'])
 def view_myflights():
@@ -188,16 +188,13 @@ def view_myflights():
 
 	cursor = conn.cursor()
 	query = '''
-
 		SELECT  ticketID, flight.ID, depDate, depTime, arrDate, arrTime, status
-    
 		FROM flight INNER JOIN ticket
         where customer_email = %s
         and ticket.flightID = flight.ID
 		and depDate between %s and %s;
 
 	'''
-
     #ticket.flightID and flight.ID both refer to the ID of the airplane
     #check line where customer_email=%s. Does not seem it will work. Check for a way around. Maybe use customer name
 	cursor.execute(query, (session.get('username'),start_date, end_date))
@@ -208,7 +205,7 @@ def view_myflights():
 #book a flight
 @app.route('/change to correct page', methods=['GET', 'POST'])
 def get_flights():
-	depAirport = request.args.get('depAirport')
+	depAirport = request.args.get('depAirport') #args.get is to filter results
 	arrAirport = request.args.get('arrAirport')
 	depDate = request.args.get('depDate')
 	arrDate = request.args.get('arrDate',None)
@@ -273,28 +270,117 @@ def book_clicked():
 #after selecting ticket
 @app.route('/change to correct page', methods=['GET', 'POST'])
 def checkout():
-	flightNum = request.form['flightNum']
-	price = request.form['price']
-	customer_email = session['username']
-	firstName = request.form['firstName']
-	lastName = request.form['lastName']
-	date_of_birth = request.form['date_of_birth']
-	cardType = request.form['cardType']
-	cardNum = request.form['cardNum']
-	expirationDate = request.form['expirationDate']
-	purchaseDate = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-	print((flightNum, customer_email, firstName, lastName, date_of_birth, cardType, cardNum, expirationDate, purchaseDate))
-	
-	cursor = conn.cursor()
-	ins = '''INSERT INTO ticket (flight_id, customer_email, fname, lname, dob, price, card_type, card_num, exp_date, purchase_date) 
-         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'''
-
-	cursor.execute(ins, (flightNum, customer_email, firstName, lastName, date_of_birth, price, cardType, cardNum, expirationDate, purchaseDate) )
-	conn.commit()
-	cursor.close()
-	return render_template('checkout.html')
+    ticketID = request.form['ticketID']
+    flightName = request.form['flightName']
+    flightNum = request.form['flightNum']
+    flightDepDate = request.form['flightDepDate']
+    flightDepTime = request.form['flightDepTime']
+    flightID= request.form['flightID']
+    price = request.form['price']
+    customerEmail = session['username']
+    firstName = request.form['firstName']
+    lastName = request.form['lastName']
+    fullName = "{} {}".format(firstName, lastName)
+    cardType = request.form['cardType']
+    cardNum = request.form['cardNum']
+    expirationDate = request.form['expirationDate']
+    purchaseDate = datetime.now().strftime('%Y-%m-%d')
+    purchaseTime = datetime.now().strftime('%H:%M:%S')
+    #print((flightNum, customer_email, firstName, lastName, date_of_birth, cardType, cardNum, expirationDate, purchaseDate))
+    
+    cursor = conn.cursor()
+    ins = '''INSERT INTO ticket (ticketID, flightName, flightNum, flightDepDate, flightDepTime, flightID, ticketPrice, cardNum, cardType, nameOfHolder, exp_date) 
+         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+         INSERT INTO purchases(customerEmail,flightName, flightNum, flightDepDate, flightDepTime, flightID, PurchaseTime, PurchaseDate)
+         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'''
+    
+    cursor.execute(ins, (ticketID, flightName, flightNum, flightDepDate, flightDepTime, flightID, price, cardNum, cardType, fullName, expirationDate, customerEmail, flightName, flightNum, flightDepDate, flightDepTime, flightID, purchaseTime, purchaseDate) )
+    conn.commit()
+    cursor.close()
+    return render_template('checkout.html')
 
 #define route for my flights
 @app.route('/my_flights', methods=['GET', 'POST'])
 def my_flights():
-	return redirect(url_for('view_myflights')) 
+	return redirect(url_for('view_myflights'))
+
+#staff queries and all
+#view flights
+@app.route('/change to correct name', methods=['GET', 'POST'])
+def view_flights():
+	today = datetime.today().strftime('%Y-%m-%d')
+	future_date = (datetime.today() + timedelta(days=30)).strftime('%Y-%m-%d')
+
+	depAirport = request.form.get('depAirport')
+	arrAirport = request.form.get('arrAirport')
+	start_date = request.form.get('start_date')
+	end_date = request.form.get('end_date')
+ 
+
+	if not start_date:
+		start_date = today
+
+	if not end_date:
+		end_date = future_date
+
+	cursor = conn.cursor()
+	query = '''
+		SELECT  flighID, depDate, depTime, arrDate, arrTime, status, AirlineName
+		FROM flight
+		INNER JOIN airplane ON flight.ID = airplanes.ID
+		WHERE AirlineName IN (
+			SELECT airline_Name 
+			FROM airlinestaff
+			WHERE username = %s and
+			dep_date BETWEEN %s AND %s
+		)
+	'''
+	params = (session.get('username'),start_date, end_date,)
+
+	if depAirport and arrAirport :
+		query += 'AND depAirport = %s AND arrAirport = %s;'
+		params += (depAirport, arrAirport)
+	else:
+		query += ';'
+
+	cursor.execute(query, params)
+
+	data = cursor.fetchall() 
+	cursor.close()
+	return render_template('staff_dashboard.html', username = session['username'], airlineName = session['airlineName'], flights=data)
+
+#view customers of a particular flight
+@app.route('/change to correct name', methods=['GET', 'POST'])
+def view_customers():
+	flightNum = request.args.get('flightNum')
+
+	cursor = conn.cursor()
+
+	query = """SELECT nameOfHolder FROM ticket 
+				WHERE flightNum = %s;"""
+	
+	cursor.execute(query, (flightNum))
+	customers = cursor.fetchall()
+
+	cursor.close()
+	return render_template('view_customers.html', customers=customers)
+
+#view airplanes
+@app.route('/change to correct name', methods=['GET', 'POST'])
+def view_airplanes():
+	
+	cursor = conn.cursor()
+	query = '''
+		SELECT ID, ManufacturingCompany, ManufacturingDate, NumberOfSeats, ModelNumber
+		FROM airplane
+		WHERE AirlineName IN (
+			SELECT Airline_Name 
+			FROM airlinestaff
+			WHERE username = %s
+		);
+	'''
+	cursor.execute(query, session['username'])
+
+	data = cursor.fetchall() 
+	cursor.close()
+	return render_template('view_airplanes.html', username = session['username'], airplanes=data)
