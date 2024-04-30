@@ -25,50 +25,60 @@ def index():
 
 
 #Customer Pages + What they can do ==========================================================================================
-@app.route('/customer-login', methods=['GET'])
+@app.route('/customer-login', methods=['GET', 'POST'])
 def customer_login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT * FROM customer WHERE emailAddress = %s AND password = %s", (username, password))
+                customer = cursor.fetchone()
+        finally:
+            connection.close()
+        return render_template('customer_home.html', customer=customer)
     return render_template('customer_login.html')
 
 # redirect to customer registration form
-@app.route('/customer-register', methods=['GET'])
+@app.route('/customer-register', methods=['GET', 'POST'])
 def customer_register():
-    return render_template('customer_register.html')
+    if request.method == 'POST':
+        username = request.form.get('emailAddress')
+        password = request.form.get('password')
+        first_name = request.form.get('firstName')
+        last_name = request.form.get('lastName')
+        building_number = request.form.get('buildingNumber')
+        street_name = request.form.get('streetName')
+        apartment_number = request.form.get('apartmentNumber')
+        city = request.form.get('city')
+        state = request.form.get('state')
+        zip_code = request.form.get('zip_code')
+        passport_number = request.form.get('passport_number')
+        passport_expiration = request.form.get('passport_expiration')
+        passport_country = request.form.get('passport_country')
+        date_of_birth = request.form.get('date_of_birth')
+        phone_number = request.form.get("phoneNumber")
 
-# customer registration post
-@app.route('/customer-register', methods=['POST'])
-def customer_register_post():
-    username = request.form.get('emailAddress')
-    password = request.form.get('password')
-    first_name = request.form.get('firstName')
-    last_name = request.form.get('lastName')
-    building_number = request.form.get('buildingNumber')
-    street_name = request.form.get('streetName')
-    apartment_number = request.form.get('apartmentNumber')
-    city = request.form.get('city')
-    state = request.form.get('state')
-    zip_code = request.form.get('zip_code')
-    passport_number = request.form.get('passport_number')
-    passport_expiration = request.form.get('passport_expiration')
-    passport_country = request.form.get('passport_country')
-    date_of_birth = request.form.get('date_of_birth')
-    phone_number = request.form.get("phoneNumber")
-
-    connection = get_db_connection()
-    try:
-        with connection.cursor() as cursor:
-            #fix query to be correct
-            cursor.execute("INSERT INTO customer (emailAddress, firstName, lastName, password, buildingNumber, streetName, apartmentNumber, city, state, zipCode, passport_number, passport_expiration, passport_country, date_of_birth) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (username, first_name, last_name, password, building_number, street_name, apartment_number, city, state, zip_code, passport_number, passport_expiration, passport_country, date_of_birth))
-            cursor.execute("INSERT INTO customer_contact_info (emailAddress, phoneNumber) VALUES (%s, %s)", (username, phone_number))
-            connection.commit()
-    finally:
-        connection.close()
-    return redirect('/')
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                #fix query to be correct
+                sql = "INSERT INTO customer (emailAddress, firstName, lastName, password, buildingNumber, streetName, apartmentNumber, city, state, zipCode, passport_number, passport_expiration, passport_country, date_of_birth) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                cursor.execute(sql, (username, first_name, last_name, password, building_number, street_name, apartment_number, city, state, zip_code, passport_number, passport_expiration, passport_country, date_of_birth))
+                cursor.execute("INSERT INTO customer_contact_info (emailAddress, phoneNumber) VALUES (%s, %s)", (username, phone_number))
+                connection.commit()
+        finally:
+            connection.close()
+        return redirect('/')
+    else:
+        return render_template('customer_register.html')    
 
 @app.route('/customer-home', methods=['GET', 'POST'])
 def customer_home():
     return render_template('customer_home.html')
 
-@app.route('/flights-', methods=['GET'])
+@app.route('/flights', methods=['GET'])
 def flightsCustomer():
     connection = get_db_connection()
     try:
@@ -78,7 +88,7 @@ def flightsCustomer():
     finally:
         connection.close()
         
-    return render_template('view_flights_custome.html', flights=flight_records)
+    return render_template('view_flights_customer.html', flights=flight_records)
 
 #filter flights
 @app.route('/flights', methods=['POST'])
@@ -205,11 +215,6 @@ def filter_flights():
 @app.route('/staff-home', methods=['GET', 'POST'])
 def staff_home():
     return render_template('staff_home.html')
-
-#logout app route
-@app.route('/logout', methods=['GET', 'POST'])
-def logout():
-    return redirect('/')
 
 @app.route('/add-airplane', methods=['GET', 'POST'])
 def addAirplane():
