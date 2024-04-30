@@ -113,6 +113,29 @@ def filter_flightsCustomer():
         
     return render_template('view_flights_customer.html', flights=flight_records)
 
+#redirect to review flights form
+@app.route('/ratings', methods=['GET'])
+def customer_rating():
+    return render_template('customer_rating')
+
+#review flights post
+@app.route('/ratings', methods=['POST'])
+def customer_rating_post():
+    email = request.form.get('Email')
+    ticketID = request.form.get('ticketID')
+    rating = request.form.get('Rating')
+    comment = request.form.get('Comment')
+    connection = get_db_connection()
+    
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("INSERT INTO review (emailAddress, ticketID, Rating, Comment) VALUES (%s, %s, %s, %s)", (email, ticketID, rating, comment))
+            connection.commit()
+    finally:
+        connection.close()
+    return redirect('/')
+
+
 #Staff Pages + What they can do =========================================================================================
 
 # redirect to staff login
