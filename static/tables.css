@@ -1,0 +1,38 @@
+/* General body styles */
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  background-color: #f4f4f9;
+  color: #333;
+}
+
+/* Styles for the table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+/* Styles for table headers */
+th {
+  background-color: #4CAF50;
+  color: white;
+  padding: 15px;
+  text-align: left;
+}
+
+/* Styles for table cells */
+td {
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+}
+
+/* Row styling for hover effect */
+tr:hover {
+  background-color: #f5f5f5;
+}
+
+/* Heading style */
+h1 {
+  color: #333;
+}

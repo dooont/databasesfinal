@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Flight Information</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='tables.css') }}">
+</head>
+<body>
+    <h1>Flight Information</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Flight Number</th>
+                <th>Departure Date</th>
+                <th>Departure Time</th>
+                <th>Departure Airport</th>
+                <th>Arrival Date</th>
+                <th>Arrival Time</th>
+                <th>Arrival Airport</th>
+                <th>ID</th>
+                <th>Base Price</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for flight in flights %}
+            <tr>
+                <td>{{ flight.Name }}</td>
+                <td>{{ flight.flightNum }}</td>
+                <td>{{ flight.depDate }}</td>
+                <td>{{ flight.depTime }}</td>
+                <td>{{ flight.depAirport }}</td>
+                <td>{{ flight.arrDate }}</td>
+                <td>{{ flight.arrTime }}</td>
+                <td>{{ flight.arrAirport }}</td>
+                <td>{{ flight.ID }}</td>
+                <td>{{ flight.basePrice }}</td>
+                <td>{{ flight.status }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
