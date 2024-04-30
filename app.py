@@ -111,6 +111,7 @@ def filter_flightsCustomer():
     end_date = request.form.get('end_date')
     source = request.form.get('source')
     destination = request.form.get('destination')
+    flight_type = request.form.get('flight_type')
     
     if not start_date:
         start_date = '2020-01-01'  
@@ -118,13 +119,22 @@ def filter_flightsCustomer():
         end_date = '2100-12-31' 
     
     connection = get_db_connection()
-    try:
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM flight WHERE depAirport = %s AND arrAirport = %s AND depDate >= %s AND arrDate <= %s", (source, destination, start_date, end_date))
-            flight_records = cursor.fetchall()
-    finally:
-        connection.close()
-        
+    
+    if flight_type == 'one-way':
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT * FROM flight WHERE depAirport = %s AND arrAirport = %s AND depDate == %s", (source, destination, start_date))
+                flight_records = cursor.fetchall()
+        finally:
+            connection.close()
+    else:
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT * FROM flight WHERE depAirport = %s AND arrAirport = %s AND (depDate == %s OR depDate == %s)", (source, destination, start_date, end_date))
+                flight_records = cursor.fetchall()
+        finally:
+            connection.close()
+
     return render_template('view_flights_customer.html', flights=flight_records)
 
 #redirect to purchase flights
@@ -156,7 +166,7 @@ def purchase():
             flight = cursor.fetchone()
     finally:
         connection.close()
-    return render_template('view_purchases.html', flight=flight, name=name, email=email, phone=phone, passport=passport)
+    return render_template('checkout.html', flight=flight, name=name, email=email, phone=phone, passport=passport)
 
 #redirect to review flights form
 @app.route('/ratings', methods=['GET'])
@@ -323,26 +333,32 @@ def flightsStaff():
     return render_template('view_flights_staff.html', flights=flight_records)
 
 #filter flights
-@app.route('/flights', methods=['POST'])
+@app.route('/flights-staff', methods=['POST'])
 def filter_flights():
     start_date = request.form.get('start_date')
     end_date = request.form.get('end_date')
     source = request.form.get('source')
     destination = request.form.get('arr_Airport')
+    flight_type = request.form.get('flight_type')
     
-    if not start_date:
-        start_date = '2020-01-01'  
-    if not end_date:
-        end_date = '2100-12-31' 
-        connection = get_db_connection()
-    try:
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM flight WHERE depAirport = %s AND arrAirport = %s AND depDate >= %s AND arrDate <= %s", (source, destination, start_date, end_date))
-            flight_records = cursor.fetchall()
-    finally:
-        connection.close()
+    connection = get_db_connection()
+    
+    if flight_type == 'one-way':
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT * FROM flight WHERE depAirport = %s AND arrAirport = %s AND depDate == %s", (source, destination, start_date))
+                flight_records = cursor.fetchall()
+        finally:
+            connection.close()
+    else:
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT * FROM flight WHERE depAirport = %s AND arrAirport = %s AND (depDate == %s OR depDate == %s)", (source, destination, start_date, end_date))
+                flight_records = cursor.fetchall()
+        finally:
+            connection.close()
         
-    return render_template('view_flights.html', flights=flight_records)    # 
+    return render_template('view_flights_staff.html', flights=flight_records)
 
 #staff-home app route
 @app.route('/staff-home', methods=['GET', 'POST'])
