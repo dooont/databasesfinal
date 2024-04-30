@@ -3,15 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spending Tracker</title>
+    <title>Track Spending</title>
 </head>
 <body>
-    <h1>Spending Tracker</h1>
-
-    <!-- Display total spending over the past year -->
+    <h1>Track Your Spending</h1>
+    
     <h2>Total Spending for the Past Year: ${{ total_past_year | default('0', true) }}</h2>
-
-    <!-- Display monthly spending data for the last 6 months -->
+    
     <h3>Monthly Spending for the Last 6 Months:</h3>
     <ul>
         {% for year, month, amount in monthly_data %}
@@ -21,16 +19,13 @@
         {% endfor %}
     </ul>
 
-    <!-- Form for selecting a custom date range -->
     <form action="/spending" method="post">
-        <label for="start_date">Start Date:</label>
-        <input type="date" id="start_date" name="start_date" required>
-        <label for="end_date">End Date:</label>
-        <input type="date" id="end_date" name="end_date" required>
+        Enter Name: <input type="text" name="name" required><br>
+        Start Date: <input type="date" name="start_date" required><br>
+        End Date: <input type="date" name="end_date" required><br>
         <button type="submit">View Spending</button>
     </form>
 
-    <!-- Display total and monthly spending within the specified range -->
     {% if range_total is not None %}
     <h2>Total Spending for Selected Range: ${{ range_total }}</h2>
     <h3>Monthly Spending Within Range:</h3>
@@ -42,6 +37,5 @@
         {% endfor %}
     </ul>
     {% endif %}
-
 </body>
 </html>
