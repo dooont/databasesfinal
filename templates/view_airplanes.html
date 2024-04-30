@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Airplane Information</title>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='tables.css') }}">
+</head>
+<body>
+  <h1>Airplane Information</h1>
+  <table>
+    <tr>  
+      <th>Manufacturing Company</th>
+      <th>Manufacturing Date</th>
+      <th>Number of Seats</th>
+      <th>Model Number</th>
+      <th>Airline Name</th>
+    </tr>
+    {% for airplane in airplanes %}
+    <tr>
+      <td>{{ airplane.ManufacturingCompany }}</td>
+      <td>{{ airplane.ManufacturingDate }}</td>
+      <td>{{ airplane.NumberOfSeats }}</td>
+      <td>{{ airplane.ModelNumber }}</td>
+      <td>{{ airplane.AirlineName }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  </table>
+  <form action="/add-airplane" method="get">
+    <button id="add_airplane" type="submit"><b>Add Airplane</b></button>
+  </form>
+</body>
+</html>

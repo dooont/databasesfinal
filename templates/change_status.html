@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Change Flight Status</title>
+</head>
+<body>
+    <h1>Change Flight Status</h1>
+    <form action="/change-flight-status" method="post">
+        <label for="flight_id">Flight ID:</label>
+        <input type="text" id="flight_id" name="flight_id">
+        
+        <label for="new_status">New Status:</label>
+        <select id="new_status" name="new_status">
+            <option value="on_time">On Time</option>
+            <option value="delayed">Delayed</option>
+            <option value="cancelled">Cancelled</option>
+        </select>
+        
+        <button type="submit">Update Status</button>
+    </form>
+</body>
+</html>

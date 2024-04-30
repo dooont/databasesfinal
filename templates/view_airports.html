@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>View Airports</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid #ddd;
+        }
+
+        th,
+        td {
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Airports Information</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Code</th>
+                <th>Name</th>
+                <th>Airport Type</th>
+                <th>City</th>
+                <th>Country</th>
+                <th>Terminals</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for airport in airports %}
+            <tr>
+                <td>{{ airport.Code }}</td>
+                <td>{{ airport.Name }}</td>
+                <td>{{ airport.AirportType }}</td>
+                <td>{{ airport.City }}</td>
+                <td>{{ airport.Country }}</td>
+                <td>{{ airport.Terminals }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <form action="/add-airport" method="get">
+        <button id="add_aiport" type="submit"><b>Add Airport</b></button>
+    </form>
+</body>
+</html>
