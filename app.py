@@ -164,12 +164,9 @@ def track_spending():
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT SUM(ticketPrice) FROM ticket where flightDepDate >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR) AND nameOfHolder = %s", (name,))
+            cursor.execute("SELECT SUM(ticketPrice) AS total FROM ticket where flightDepDate >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR) AND nameOfHolder = %s", (name,))
             result = cursor.fetchone()
-            if result and result[0] is not None:
-                total_past_year = result[0]
-            else:
-                total_past_year = 0
+            total_past_year = result['total'] if result and result['total'] is not None else 0
             
             monthly_spending_query = """
             SELECT YEAR(flightDepDate), MONTH(flightDepDate), SUM(ticketPrice)
@@ -186,8 +183,10 @@ def track_spending():
             if request.method == 'POST':
                 start_date = request.form['start_date']
                 end_date = request.form['end_date']
-                cursor.execute("SELECT SUM(ticketPrice) FROM Ticket WHERE flightDepDate BETWEEN %s AND %s", (start_date, end_date))
-                range_total = cursor.fetchone()[0] or 0
+                cursor.execute("SELECT SUM(ticketPrice) AS total FROM Ticket WHERE flightDepDate BETWEEN %s AND %s", (start_date, end_date))
+                result = cursor.fetchone()
+                range_total = result['total'] if result and result['total'] is not None else 0
+                #range_total = cursor.fetchone()[0] or 0
                 monthly_range_query = """
                 SELECT YEAR(flightDepDate), MONTH(flightDepDate), SUM(ticketPrice)
                 FROM Ticket
