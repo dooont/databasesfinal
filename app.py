@@ -4,6 +4,14 @@ from functools import wraps
 
 import pymysql.cursors
 
+staffAirline = ''
+staffUsername = ''
+customerLogged = False
+staffLogged = False
+
+#BE ABLE TO SEARCH FOR FLIGHTS ON THE MAIN PAGE
+#if they logout, they shouldn't be able to go back
+#implement as much logic as possible in the backend
 
 app = Flask(__name__, static_folder="static")
 app.secret_key = 'whatever_you_want'
