@@ -137,39 +137,37 @@ def filter_flightsCustomer():
 
     return render_template('view_flights_customer.html', flights=flight_records)
 
-#redirect to purchase flights
-@app.route('/purchase', methods=['GET'])
-def customer_rating():
-    return render_template('view_flights_customer.html')
-
 @app.route('/purchase', methods=['GET', 'POST'])
 def purchase():
     if request.method == 'GET':
-        return render_template('checkout.html')
+        with get_db_connection().cursor() as cursor:
+            cursor.execute("SELECT * FROM flight")
+            flights = cursor.fetchall()
+        return render_template('checkout.html', flights=flights)
     else:
         flight_name = request.form.get('flight_name')
         flight_flightNum = request.form.get('flight_flightNum')
         flight_depDate = request.form.get('flight_depDate')
         flight_depTime = request.form.get('flight_depTime')
-        flight_ID = request.form.get('flight_ID')
-        flight_ticketPrice = request.form.get('flight_ticketPrice')
-        cardNum = request.form.get('cardNum') #input by customer change it to check out html in code1
+        flight_ID = request.form.get('flight_id')
+        flight_ticketPrice = request.form.get('flight_basePrice')
+        cardNum = request.form['cardNum']
         cardType = request.form.get('cardType') #input by customer
         nameOfHolder = request.form.get('nameOfHolder') #input by customer
         expirationDate = request.form.get('expirationDate') #input by customer
         email = request.form.get('email') #input by customer
         now = datetime.now()
-        purchaseTime = now.strftime('%Y-%m-%d')
-        purchaseDate = now.strftime('%H:%M:%S')
+        purchaseTime = now.strftime('%H:%M:%S')
+        purchaseDate = now.strftime('%Y-%m-%d')
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                cursor.execute("INSERT INTO ticket (flightName, flightNum, flightDepDate, flightDepTime, flightID, ticketPrice, cardNum, cardType, nameOfHolder, expirationDate) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)", (flight_name, flight_flightNum, flight_depDate, flight_depTime, flight_ID, flight_ticketPrice, cardNum, cardType, nameOfHolder, expirationDate))
-                cursor.execute("INSERT INTO purchase (CustomerEmail, flightName, flightNum, flightDepDate, flightDepTime, flightID, PurchaseTime, PurchaseDate) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",(email, flight_name, flight_flightNum, flight_depDate, flight_depTime, flight_ID, purchaseTime, purchaseDate))
-                flight = cursor.fetchone()
+                cursor.execute("INSERT INTO ticket (flightName, flightNum, flightDepDate, flightDepTime, flightID, ticketPrice, cardNum, cardType, nameOfHolder, expirationDate) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (str(flight_name), str(flight_flightNum), str(flight_depDate), str(flight_depTime), flight_ID, flight_ticketPrice, str(cardNum), cardType, nameOfHolder, expirationDate))
+                cursor.execute("INSERT INTO purchases (CustomerEmail, flightName, flightNum, flightDepDate, flightDepTime, flightID, PurchaseTime, PurchaseDate) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (email, flight_name, flight_flightNum, flight_depDate, flight_depTime, flight_ID, purchaseTime, purchaseDate))
+                # flight = cursor.fetchone()
         finally:
             connection.close()
-        return render_template('checkout.html')
+        return render_template('index.html')
 
 
 #redirect to review flights form

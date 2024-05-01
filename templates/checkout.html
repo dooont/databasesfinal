@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
+    <!-- <style>
         /* Add your CSS styles here */
         body {
             font-family: Arial, sans-serif;
@@ -54,7 +54,7 @@
         button:hover {
             background-color: #45a049;
         }
-    </style>
+    </style> -->
 </head>
 
 <body>
@@ -96,13 +96,22 @@
                         <input type="hidden" name="flight_flightNum" value="{{ flight.flightNum }}">
                         <input type="hidden" name="flight_depDate" value="{{ flight.depDate }}">
                         <input type="hidden" name="flight_depTime" value="{{ flight.depTime }}">
-                        <input type="hidden" name="flight_depAirport" value="{{ flight.depAirport }}">
-                        <input type="hidden" name="flight_arrDate" value="{{ flight.arrDate }}">
-                        <input type="hidden" name="flight_arrTime" value="{{ flight.arrTime }}">
-                        <input type="hidden" name="flight_arrAirport" value="{{ flight.arrAirport }}">
                         <input type="hidden" name="flight_id" value="{{ flight.ID }}">
                         <input type="hidden" name="flight_basePrice" value="{{ flight.basePrice }}">
-                        <input type="hidden" name="flight_status" value="{{ flight.status }}">
+                        <label for="cardNum">CardNum:</label>
+                        <input type="text" id="cardNum" name="cardNum" required>
+
+                        <label for="cardType">CardType:</label>
+                        <input type="text" id="cardType" name="cardType" required>
+
+                        <label for="nameOfHolder">NameOfHolder:</label>
+                        <input type="text" id="nameOfHolder" name="nameOfHolder" required>
+
+                        <label for="expirationDate">ExpirationDate:</label>
+                        <input type="date" id="expirationDate" name="expirationDate" required>
+
+                        <label for="email">Email:</label>
+                        <input type="text" id="email" name="email">
                         <button type="submit">Purchase</button>
                     </form>
                 </td>
@@ -111,9 +120,9 @@
             {% endfor %}
         </tbody>
     </table>
-    <h1>Checkout Form</h1>
+    <!-- <h1>Checkout Form</h1>
     <div class="checkout">
-        <form action="/checkout" method="post">
+        <form action="/purchase" method="post">
             <label for="cardNum">CardNum:</label>
             <input type="text" id="cardNum" name="cardNum" required>
 
@@ -124,14 +133,13 @@
             <input type="text" id="nameOfHolder" name="nameOfHolder" required>
 
             <label for="expirationDate">ExpirationDate:</label>
-            <input type="text" id="expirationDate" name="expirationDate" required>
+            <input type="date" id="expirationDate" name="expirationDate" required>
 
             <label for="email">Email:</label>
-            <input type="date" id="email" name="email">
-
-            <input type="submit" value="Register">
+            <input type="text" id="email" name="email">
         </form>
-    </div>
+    </div> -->
+
     <form method="get" action="/">
         <button type="submit">Go Back Home</button>
     </form>
