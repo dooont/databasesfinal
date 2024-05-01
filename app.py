@@ -1,10 +1,13 @@
 from flask import Flask, redirect, render_template, request, session, url_for
-from datetime import datetime
+from datetime import datetime, timedelta
+from functools import wraps
 
 import pymysql.cursors
 
 staffAirline = ''
 staffUsername = ''
+customerLogged = False
+staffLogged = False
 
 #if they logout, they shouldn't be able to go back
 #implement as much logic as possible in the backend
@@ -31,26 +34,22 @@ def index():
 #Customer Pages + What they can do ==========================================================================================
 @app.route('/customer-login', methods=['GET', 'POST'])
 def customer_login():
+    global customerLogged
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
         connection = get_db_connection()
-        customer = None
         try:
             with connection.cursor() as cursor:
-                # Perform the query to check credentials
                 cursor.execute("SELECT * FROM customer WHERE emailAddress = %s AND password = %s", (username, password))
-                customer = cursor.fetchone()
+                cursor.fetchone()
         finally:
             connection.close()
-        
-        # Check if the credentials are correct
-        if customer:
-            session['customer_logged'] = True
-            session['customer_username'] = customer['emailAddress']
-            return render_template('customer_home.html', customer=customer)
+        customerLogged = True
+        return redirect('/customer-home')
     else:
         return render_template('customer_login.html')
+
 # redirect to customer registration form
 @app.route('/customer-register', methods=['GET', 'POST'])
 def customer_register():
@@ -87,7 +86,8 @@ def customer_register():
 
 @app.route('/customer-home', methods=['GET', 'POST'])
 def customer_home():
-    if session.get('customer_logged'):
+    global customerLogged
+    if customerLogged:
         return render_template('customer_home.html')
     else:
         return redirect('/')
@@ -138,10 +138,14 @@ def filter_flightsCustomer():
     return render_template('view_flights_customer.html', flights=flight_records)
 
 #redirect to purchase flights
+@app.route('/purchase', methods=['GET'])
+def customer_rating():
+    return render_template('view_flights_customer.html')
+
 @app.route('/purchase', methods=['GET', 'POST'])
 def purchase():
     if request.method == 'GET':
-        return render_template('view_flights_customer.html')
+        return render_template('checkout.html')
     else:
         flight_name = request.form.get('flight_name')
         flight_flightNum = request.form.get('flight_flightNum')
@@ -165,35 +169,38 @@ def purchase():
                 flight = cursor.fetchone()
         finally:
             connection.close()
-        return render_template('checkout.html', flight=flight, name=name, email=email, phone=phone, passport=passport)
+        return render_template('checkout.html')
+
 
 #redirect to review flights form
-@app.route('/ratings', methods=['GET', 'POST'])
+@app.route('/ratings', methods=['GET'])
 def customer_rating():
-    if request.method == 'GET':
-        return render_template('customer_rating.html')
+    return render_template('customer_rating.html')
+
+#review flights post
+@app.route('/ratings', methods=['POST'])
+def customer_rating_post():
+    email = request.form.get('Email')
+    ticketID = request.form.get('ticketID')
+    rating = request.form.get('Rating')
+    comment = request.form.get('Comment')
+    flightDate = request.form.get('flightDate')
+    flightDateStr = datetime.strptime(flightDate, '%Y-%m-%d').date()
+    tdyDate = datetime.now().date()
+    connection = get_db_connection()
+    
+    if(flightDateStr>tdyDate): #if flight is in future
+        connection.close()
+        return redirect('/')
+    
     else:
-        email = request.form.get('Email')
-        ticketID = request.form.get('ticketID')
-        rating = request.form.get('Rating')
-        comment = request.form.get('Comment')
-        flightDate = request.form.get('flightDate')
-        flightDateStr = datetime.strptime(flightDate, '%Y-%m-%d').date()
-        tdyDate = datetime.now().date()
-        connection = get_db_connection()
-        
-        if(flightDateStr>tdyDate): #if flight is in future
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("INSERT INTO review (emailAddress, ticketID, Rating, Comment) VALUES (%s, %s, %s, %s)", (email, ticketID, rating, comment))
+                connection.commit()
+        finally:
             connection.close()
-            return redirect('/')
-        
-        else:
-            try:
-                with connection.cursor() as cursor:
-                    cursor.execute("INSERT INTO review (emailAddress, ticketID, Rating, Comment) VALUES (%s, %s, %s, %s)", (email, ticketID, rating, comment))
-                    connection.commit()
-            finally:
-                connection.close()
-            return redirect('/')
+        return redirect('/')
 
 #tracking spending
 @app.route('/spending', methods=['GET', 'POST'])
@@ -254,28 +261,18 @@ def staff_login():
 #staff login post
 @app.route('/staff-login', methods=['POST'])
 def staffLoginPost():
+    global staffLogged
     username = request.form.get('username')
     password = request.form.get('password')
     connection = get_db_connection()
-    
     try:
         with connection.cursor() as cursor:
-            # Query to check username and password against the database
-            cursor.execute("SELECT * FROM airlinestaff WHERE Username = %s AND Password = %s", (username, password))
+            cursor.execute("SELECT * FROM airlinestaff WHERE username = %s AND password = %s", (username, password))
             staff = cursor.fetchone()
     finally:
         connection.close()
-        
-    if staff:
-        # If valid credentials, set session variables
-        session['staff_logged'] = True
-        session['staff_username'] = staff['Username']  # Store the username in the session
-        return render_template('staff_home.html')
-    else:
-        # If no valid credentials, handle login failure
-        session['staff_logged'] = False
-        return redirect(url_for('login_page', error='Invalid credentials'))
-
+    staffLogged = True
+    return render_template('staff_home.html', staff=staff)
 
 # staff registration form
 @app.route('/staff-register', methods=['GET'])
@@ -322,12 +319,11 @@ def customers():
 #view all flights
 @app.route('/flights-staff', methods=['GET'])
 def flightsStaff():
-    username = session.get('staff_username')
-    print(username)
+    username = session.get('username')
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT Airline_Name FROM airlinestaff WHERE Username = %s", (username,))
+            cursor.execute("SELECT Airline_Name FROM airlineStaff WHERE Username = %s", (username,))
             result = cursor.fetchone()
             airline = result['Airline_Name'] if result and result['Airline_Name'] is not None else 0
             cursor.execute("SELECT * FROM flight WHERE Name = %s", (airline))
@@ -368,7 +364,8 @@ def filter_flights():
 #staff-home app route
 @app.route('/staff-home', methods=['GET', 'POST'])
 def staff_home():
-    if 'staff_logged' in session:
+    global staffLogged
+    if staffLogged:
         return render_template('staff_home.html')
     else:
         return redirect('/')
@@ -465,7 +462,7 @@ def createFlight():
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                cursor.execute("SELECT Airline_Name FROM airlinestaff WHERE Username = %s", (username,))
+                cursor.execute("SELECT Airline_Name FROM airlineStaff WHERE Username = %s", (username,))
                 result = cursor.fetchone()
                 if not result:
                     return "Airline not found for the user", 404
@@ -558,43 +555,18 @@ def view_revenue():
     # Render a template to display the revenues
     return render_template('revenue.html', flight_name=flight_name, last_month_revenue=last_month_revenue, last_year_revenue=last_year_revenue)
 
-@app.route('/staff-ratings', methods=['GET', 'POST'])
-def staff_ratings():
-    if request.method == 'POST':
-        ticket_id = request.form.get('ticket_id')
-        connection = get_db_connection()
-        reviews = []
-        try:
-            with connection.cursor() as cursor:
-                sql_query = "SELECT emailAddress, ticketID, Rating, Comment FROM review WHERE ticketID = %s"
-                cursor.execute(sql_query, (ticket_id,))
-                reviews = cursor.fetchall()
-        finally:
-            connection.close()
-        
-        return render_template('view_flight_rating.html', reviews=reviews)
-    else:
-        # If GET request, just render the form without reviews
-        return render_template('view_flight_rating.html', reviews=[])
-
 #Both Staff and Customer =========================================================================================
 
 #logout app route
-@app.route('/logout', methods=['GET'])
+@app.route('/logout', methods=['GET', 'POST'])
 def logout():
-    # Check if the user is logged in as staff or customer and then log them out.
-    session.pop('emailAddress')  
+    global customerLogged
+    global staffLogged
+    customerLogged = False
+    print(customerLogged)
+    staffLogged = False
     print("logged out")
-    session.clear()  # Clear all session data
-    return redirect('/staff-login')
-
-@app.route('/logout-staff', methods=['GET'])
-def logoutStaff():
-    session.pop('staff_username')
-    print("logged out")
-    session.clear()  # Clear all session data
-    return redirect('/staff-login')
-
+    return redirect('/')
 
 if __name__ == '__main__':
     app.run(debug=True)

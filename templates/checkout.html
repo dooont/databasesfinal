@@ -1,84 +1,140 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    /* Add your CSS styles here */
-    body {
-        font-family: Arial, sans-serif;
-        background-color: #f2f2f2;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* Add your CSS styles here */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+        }
 
-    h1 {
-        color: #333;
-        text-align: center;
-    }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
 
-    .customer.register-form {
-        margin: 20px auto;
-        max-width: 400px;
-        padding: 20px;
-        background-color: #fff;
-        border-radius: 5px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
+        .customer.register-form {
+            margin: 20px auto;
+            max-width: 400px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
 
-    label {
-        display: block;
-        margin-bottom: 10px;
-        font-weight: bold;
-    }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
 
-    input {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        box-sizing: border-box;
-        margin-bottom: 10px;
-    }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
 
-    input[type="submit"],
-    button {
-        background-color: #4CAF50;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
+        input[type="submit"],
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
 
-    input[type="submit"]:hover,
-    button:hover {
-        background-color: #45a049;
-    }
-  </style>
+        input[type="submit"]:hover,
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
 </head>
+
 <body>
-  <h1>Checkout Form</h1>
-  <div class="checkout">
-    <form action="/checkout" method="post">
-    <label for="cardNum">CardNum:</label>
-    <input type="text" id="cardNum" name="cardNum" required>
+    <h1>Flight Information</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Flight Number</th>
+                <th>Departure Date</th>
+                <th>Departure Time</th>
+                <th>Departure Airport</th>
+                <th>Arrival Date</th>
+                <th>Arrival Time</th>
+                <th>Arrival Airport</th>
+                <th>ID</th>
+                <th>Base Price</th>
+                <th>Status</th>
+                <th>Purchase</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for flight in flights %}
+            <tr>
+                <td>{{ flight.Name }}</td>
+                <td>{{ flight.flightNum }}</td>
+                <td>{{ flight.depDate }}</td>
+                <td>{{ flight.depTime }}</td>
+                <td>{{ flight.depAirport }}</td>
+                <td>{{ flight.arrDate }}</td>
+                <td>{{ flight.arrTime }}</td>
+                <td>{{ flight.arrAirport }}</td>
+                <td>{{ flight.ID }}</td>
+                <td>{{ flight.basePrice }}</td>
+                <td>{{ flight.status }}</td>
+                <td>
+                    <form action="/purchase" method="post">
+                        <input type="hidden" name="flight_name" value="{{ flight.Name }}">
+                        <input type="hidden" name="flight_flightNum" value="{{ flight.flightNum }}">
+                        <input type="hidden" name="flight_depDate" value="{{ flight.depDate }}">
+                        <input type="hidden" name="flight_depTime" value="{{ flight.depTime }}">
+                        <input type="hidden" name="flight_depAirport" value="{{ flight.depAirport }}">
+                        <input type="hidden" name="flight_arrDate" value="{{ flight.arrDate }}">
+                        <input type="hidden" name="flight_arrTime" value="{{ flight.arrTime }}">
+                        <input type="hidden" name="flight_arrAirport" value="{{ flight.arrAirport }}">
+                        <input type="hidden" name="flight_id" value="{{ flight.ID }}">
+                        <input type="hidden" name="flight_basePrice" value="{{ flight.basePrice }}">
+                        <input type="hidden" name="flight_status" value="{{ flight.status }}">
+                        <button type="submit">Purchase</button>
+                    </form>
+                </td>
 
-    <label for="cardType">CardType:</label>
-    <input type="text" id="cardType" name="cardType" required>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <h1>Checkout Form</h1>
+    <div class="checkout">
+        <form action="/checkout" method="post">
+            <label for="cardNum">CardNum:</label>
+            <input type="text" id="cardNum" name="cardNum" required>
 
-    <label for="nameOfHolder">NameOfHolder:</label>
-    <input type="text" id="nameOfHolder" name="nameOfHolder" required>
+            <label for="cardType">CardType:</label>
+            <input type="text" id="cardType" name="cardType" required>
 
-    <label for="expirationDate">ExpirationDate:</label>
-    <input type="text" id="expirationDate" name="expirationDate" required>
+            <label for="nameOfHolder">NameOfHolder:</label>
+            <input type="text" id="nameOfHolder" name="nameOfHolder" required>
 
-    <label for="email">Email:</label>
-    <input type="date" id="email" name="email">
+            <label for="expirationDate">ExpirationDate:</label>
+            <input type="text" id="expirationDate" name="expirationDate" required>
 
-        <input type="submit" value="Register">
-    </form>
-</div>
+            <label for="email">Email:</label>
+            <input type="date" id="email" name="email">
+
+            <input type="submit" value="Register">
+        </form>
+    </div>
     <form method="get" action="/">
-    <button type="submit">Go Back Home</button>
+        <button type="submit">Go Back Home</button>
     </form>
 </body>
+
 </html>
