@@ -34,20 +34,24 @@ def index():
 #Customer Pages + What they can do ==========================================================================================
 @app.route('/customer-login', methods=['GET', 'POST'])
 def customer_login():
-    global customerLogged
     if request.method == 'POST':
         username = request.form.get('username')
         print(username)
         password = request.form.get('password')
         connection = get_db_connection()
+        customer = None
         try:
             with connection.cursor() as cursor:
                 cursor.execute("SELECT * FROM customer WHERE emailAddress = %s AND password = %s", (username, password))
-                cursor.fetchone()
+                customer = cursor.fetchone()
         finally:
             connection.close()
-        customerLogged = True
-        return redirect('/customer-home')
+        if customer:
+            session['customer_logged'] = True
+            session['customer_username'] = customer['emailAddress']
+            return render_template('customer_home.html', customer=customer)
+            # Handling the case where login credentials are invalid
+
     else:
         return render_template('customer_login.html')
 
@@ -87,8 +91,7 @@ def customer_register():
 
 @app.route('/customer-home', methods=['GET', 'POST'])
 def customer_home():
-    global customerLogged
-    if customerLogged:
+    if session.get('customer_logged'):
         return render_template('customer_home.html')
     else:
         return redirect('/')
@@ -632,18 +635,42 @@ def view_revenue():
     # Render a template to display the revenues
     return render_template('revenue.html', flight_name=flight_name, last_month_revenue=last_month_revenue, last_year_revenue=last_year_revenue)
 
+@app.route('/staff-ratings', methods=['GET', 'POST'])
+def staff_ratings():
+    if request.method == 'POST':
+        ticket_id = request.form.get('ticket_id')
+        connection = get_db_connection()
+        reviews = []
+        try:
+            with connection.cursor() as cursor:
+                sql_query = "SELECT emailAddress, ticketID, Rating, Comment FROM review WHERE ticketID = %s"
+                cursor.execute(sql_query, (ticket_id,))
+                reviews = cursor.fetchall()
+        finally:
+            connection.close()
+        
+        return render_template('view_flight_rating.html', reviews=reviews)
+    else:
+        # If GET request, just render the form without reviews
+        return render_template('view_flight_rating.html', reviews=[])
+
 #Both Staff and Customer =========================================================================================
 
 #logout app route
 @app.route('/logout', methods=['GET', 'POST'])
 def logout():
-    global customerLogged
-    global staffLogged
-    customerLogged = False
-    print(customerLogged)
-    staffLogged = False
+    # Check if the user is logged in as staff or customer and then log them out.    
+    session.pop('emailAddress')  
     print("logged out")
-    return redirect('/')
+    session.clear()  # Clear all session data
+    return redirect('/customer-login')
+    
+@app.route('/logout-staff', methods=['GET'])
+def logoutStaff():
+    session.pop('staff_username')
+    print("logged out")
+    session.clear()  # Clear all session data
+    return redirect('/staff-login')
 
 if __name__ == '__main__':
     app.run(debug=True)
