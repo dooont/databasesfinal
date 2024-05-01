@@ -294,8 +294,9 @@ def cancel():
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                username = session.get('username')
-                cursor.execute("SELECT * FROM purchases WHERE CustomerEmail = %s", ('alice.smith@example.com',))
+                username = session['customer_username']
+                print(username)
+                cursor.execute("SELECT * FROM purchases WHERE CustomerEmail = %s", (username,))
                 purchases = cursor.fetchall()
         finally:
             connection.close()
@@ -656,6 +657,20 @@ def staff_ratings():
     else:
         # If GET request, just render the form without reviews
         return render_template('view_flight_rating.html', reviews=[])
+
+#view frequent customers
+@app.route('/frequent-customers', methods=['GET'])
+def frequent_customers():
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT emailAddress, COUNT(emailAddress) AS freq FROM purchases GROUP BY emailAddress ORDER BY freq DESC")
+            frequent_customers = cursor.fetchall()
+    finally:
+        connection.close()
+        
+    return render_template('view_customers.html', customers=frequent_customers)
+
 
 #Both Staff and Customer =========================================================================================
 
