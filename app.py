@@ -157,21 +157,13 @@ def purchase():
         cardType = request.form.get('cardType') #input by customer
         nameOfHolder = request.form.get('nameOfHolder') #input by customer
         expirationDate = request.form.get('expirationDate') #input by customer
-        email = request.form.get('email') #input by customer
+        email = session['customer_username']
         now = datetime.now()
         purchaseTime = now.strftime('%H:%M:%S')
         purchaseDate = now.strftime('%Y-%m-%d')
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                # insert_purchase = """
-                # INSERT INTO purchase (CustomerEmail, flightName, flightNum, flightDepDate, flightDepTime, flightID, PurchaseDate, PurchaseTime)
-                # VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                # """
-                # cursor.execute(insert_purchase, (email, flight_name, flight_flightNum, flight_depDate, flight_depTime, flight_ID, purchaseDate, purchaseTime))
-                
-                # connection.commit()
-                # SQL statement with placeholders
                 sql = """
                 INSERT INTO ticket 
                     (flightName, flightNum, flightDepDate, flightDepTime, flightID, ticketPrice, cardNum, cardType, nameOfHolder, expirationDate)
@@ -179,10 +171,8 @@ def purchase():
                     (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """
                 
-                # Data tuple
                 data = (flight_name, flight_flightNum, flight_depDate, flight_depTime, flight_ID, flight_ticketPrice, cardNum, cardType, nameOfHolder, expirationDate)
 
-                # Execute the query with data tuple
                 cursor.execute(sql, data)
                 connection.commit()
                 
@@ -193,13 +183,11 @@ def purchase():
                     (%s, %s, %s, %s, %s, %s, %s, %s)
                 """
                 
-                # Data tuple contains all the values to be inserted
-                data = (email, flight_name, flight_flightNum, flight_depDate, flight_depTime, flight_ID, purchaseDate, purchaseTime)
-        
-                # Execute the query with the data tuple
-                cursor.execute(insert_purchase, data)
-                
+                dataPurchase = (email, flight_name, flight_flightNum, str(flight_depDate), str(flight_depTime), flight_ID, purchaseDate, purchaseTime)
+
+                cursor.execute(insert_purchase, dataPurchase)
                 connection.commit()
+                
         except Exception as e:
             print("An error occurred:", e)
             connection.rollback()
