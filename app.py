@@ -6,8 +6,6 @@ import pymysql.cursors
 
 staffAirline = ''
 staffUsername = ''
-customerLogged = False
-staffLogged = False
 
 #if they logout, they shouldn't be able to go back
 #implement as much logic as possible in the backend
@@ -34,22 +32,28 @@ def index():
 #Customer Pages + What they can do ==========================================================================================
 @app.route('/customer-login', methods=['GET', 'POST'])
 def customer_login():
-    global customerLogged
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
         connection = get_db_connection()
+        customer = None
         try:
             with connection.cursor() as cursor:
+                # Perform the query to check credentials
                 cursor.execute("SELECT * FROM customer WHERE emailAddress = %s AND password = %s", (username, password))
-                cursor.fetchone()
+                customer = cursor.fetchone()
         finally:
             connection.close()
-        customerLogged = True
-        return redirect('/customer-home')
+        
+        # Check if the credentials are correct
+        if customer:
+            session['customer_logged'] = True
+            session['customer_username'] = customer['emailAddress']
+            return render_template('customer_home.html', customer=customer)
+            # Handling the case where login credentials are invalid
+            return render_template('customer_login.html', error='Invalid username or password')
     else:
         return render_template('customer_login.html')
-
 # redirect to customer registration form
 @app.route('/customer-register', methods=['GET', 'POST'])
 def customer_register():
@@ -86,8 +90,7 @@ def customer_register():
 
 @app.route('/customer-home', methods=['GET', 'POST'])
 def customer_home():
-    global customerLogged
-    if customerLogged:
+    if session.get('customer_logged'):
         return render_template('customer_home.html')
     else:
         return redirect('/')
@@ -272,7 +275,7 @@ def staffLoginPost():
         # If valid credentials, set session variables
         session['staff_logged'] = True
         session['staff_username'] = staff['Username']  # Store the username in the session
-        return render_template('staff_home.html', staff=staff)
+        return redirect('staff_home.html', staff=staff)
     else:
         # If no valid credentials, handle login failure
         session['staff_logged'] = False
@@ -567,11 +570,11 @@ def view_revenue():
 def logout():
     # Check if the user is logged in as staff or customer and then log them out.
     if 'staff_logged' in session:
-        session.pop('staff_logged', None)  # Remove staff login session variable
+        session.pop('staff_logged', False)  # Remove staff login session variable
         session.pop('staff_username', None)  # Optionally remove other staff-related session data
 
     if 'customer_logged' in session:
-        session.pop('customer_logged', None)  # Remove customer login session variable
+        session.pop('customer_logged', False)  # Remove customer login session variable
         session.pop('customer_id', None)  # Optionally remove other customer-related session data
     
     print("logged out")
