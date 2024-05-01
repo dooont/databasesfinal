@@ -623,7 +623,7 @@ def scheduleMaintenance():
     
 @app.route('/revenue', methods=['GET', 'POST'])
 def view_revenue():
-    flight_name = request.args.get('flightName', default='')  # Get flightName from query parameter or form data
+    flight_name = session['staff_airline']  # Get flightName from query parameter or form data
     connection = get_db_connection()
     last_month_revenue = 0
     last_year_revenue = 0

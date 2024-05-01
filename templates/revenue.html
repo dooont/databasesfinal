@@ -4,15 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View Earned Revenue</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        
+        h2 {
+            color: #666;
+            text-align: center;
+        }
+        
+        p {
+            color: #999;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
     <h1>Earned Revenue</h1>
-    
-    <form action="/revenue" method="get">
-        Enter/Select Airline Name: 
-        <input type="text" name="flightName" required>
-        <button type="submit">Filter Revenue</button>
-    </form>
     
     {% if flight_name %}
     <h2>Showing Revenue for Flight: {{ flight_name }}</h2>
