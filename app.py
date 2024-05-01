@@ -211,34 +211,32 @@ def purchase():
 
 
 #redirect to review flights form
-@app.route('/ratings', methods=['GET'])
+@app.route('/ratings', methods=['GET', 'POST'])
 def customer_rating():
-    return render_template('customer_rating.html')
-
-#review flights post
-@app.route('/ratings', methods=['POST'])
-def customer_rating_post():
-    email = request.form.get('Email')
-    ticketID = request.form.get('ticketID')
-    rating = request.form.get('Rating')
-    comment = request.form.get('Comment')
-    flightDate = request.form.get('flightDate')
-    flightDateStr = datetime.strptime(flightDate, '%Y-%m-%d').date()
-    tdyDate = datetime.now().date()
-    connection = get_db_connection()
-    
-    if(flightDateStr>tdyDate): #if flight is in future
-        connection.close()
-        return redirect('/')
-    
+    if request.method == 'GET':
+        return render_template('customer_rating.html')
     else:
-        try:
-            with connection.cursor() as cursor:
-                cursor.execute("INSERT INTO review (emailAddress, ticketID, Rating, Comment) VALUES (%s, %s, %s, %s)", (email, ticketID, rating, comment))
-                connection.commit()
-        finally:
+        email = request.form.get('Email')
+        ticketID = request.form.get('ticketID')
+        rating = request.form.get('Rating')
+        comment = request.form.get('Comment')
+        flightDate = request.form.get('flightDate')
+        flightDateStr = datetime.strptime(flightDate, '%Y-%m-%d').date()
+        tdyDate = datetime.now().date()
+        connection = get_db_connection()
+        
+        if(flightDateStr>tdyDate): #if flight is in future
             connection.close()
-        return redirect('/')
+            return redirect('/')
+        
+        else:
+            try:
+                with connection.cursor() as cursor:
+                    cursor.execute("INSERT INTO review (emailAddress, ticketID, Rating, Comment) VALUES (%s, %s, %s, %s)", (email, ticketID, rating, comment))
+                    connection.commit()
+            finally:
+                connection.close()
+            return redirect('/')
 
 #tracking spending
 @app.route('/spending', methods=['GET', 'POST'])
@@ -341,7 +339,6 @@ def staff_login():
 #staff login post
 @app.route('/staff-login', methods=['POST'])
 def staffLoginPost():
-    global staffLogged
     username = request.form.get('username')
     password = request.form.get('password')
     connection = get_db_connection()
@@ -351,8 +348,15 @@ def staffLoginPost():
             staff = cursor.fetchone()
     finally:
         connection.close()
-    staffLogged = True
-    return render_template('staff_home.html', staff=staff)
+    if staff:
+        # If valid credentials, set session variables
+        session['staff_logged'] = True
+        session['staff_username'] = staff['Username']  # Store the username in the session
+        return render_template('staff_home.html', staff=staff)
+    else:
+        # If no valid credentials, handle login failure
+        session['staff_logged'] = False
+        return redirect(url_for('login_page', error='Invalid credentials'))
 
 # staff registration form
 @app.route('/staff-register', methods=['GET'])
@@ -399,7 +403,7 @@ def customers():
 #view all flights
 @app.route('/flights-staff', methods=['GET'])
 def flightsStaff():
-    username = session.get('username')
+    username = session.get('staff_username')
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
@@ -444,8 +448,7 @@ def filter_flights():
 #staff-home app route
 @app.route('/staff-home', methods=['GET', 'POST'])
 def staff_home():
-    global staffLogged
-    if staffLogged:
+    if 'staff_logged' in session:
         return render_template('staff_home.html')
     else:
         return redirect('/')
