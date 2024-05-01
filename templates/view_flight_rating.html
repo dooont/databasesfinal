@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>View and Manage Flights</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='tables.css') }}">
+</head>
+
+<body>
+    <h1>View Flights</h1>
+    <form action="/staff-ratings" method="post">
+        <label for="ticket_id">Ticket ID:</label>
+        <input type="number" id="ticket_id" name="ticket_id">
+        <button type="submit">Search Reviews</button>
+    </form>
+
+    <h1>Flight Information</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Email Address</th>
+                <th>Ticket ID</th>
+                <th>Rating</th>
+                <th>Comment</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for review in reviews %}
+            <tr>
+                <td>{{ review.emailAddress }}</td>
+                <td>{{ review.ticketID }}</td>
+                <td>{{ review.Rating }}</td>
+                <td>{{ review.Comment }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+
+</html>
