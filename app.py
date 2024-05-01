@@ -352,7 +352,7 @@ def staffLoginPost():
         # If valid credentials, set session variables
         session['staff_logged'] = True
         session['staff_username'] = staff['Username']  # Store the username in the session
-        return render_template('staff_home.html', staff=staff)
+        return render_template('staff_home.html')
     else:
         # If no valid credentials, handle login failure
         session['staff_logged'] = False
@@ -663,13 +663,14 @@ def staff_ratings():
 @app.route('/logout', methods=['GET', 'POST'])
 def logout():
     # Check if the user is logged in as staff or customer and then log them out.    
-    session.pop('emailAddress')  
+    session.pop('customer_username')  
     print("logged out")
     session.clear()  # Clear all session data
     return redirect('/customer-login')
     
 @app.route('/logout-staff', methods=['GET'])
 def logoutStaff():
+    session.pop('staff_username')
     session.pop('staff_logged')
     print("logged out")
     session.clear()  # Clear all session data
