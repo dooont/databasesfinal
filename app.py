@@ -182,10 +182,11 @@ def purchase():
                 VALUES 
                     (%s, %s, %s, %s, %s, %s, %s, %s)
                 """
-                
-                dataPurchase = (email, flight_name, flight_flightNum, str(flight_depDate), str(flight_depTime), flight_ID, purchaseDate, purchaseTime)
+                # Data tuple contains all the values to be inserted
+                data = (email, flight_name, flight_flightNum, flight_depDate, flight_depTime, flight_ID, purchaseDate, purchaseTime)
 
-                cursor.execute(insert_purchase, dataPurchase)
+                # Execute the query with the data tuple
+                cursor.execute(insert_purchase, data)
                 connection.commit()
                 
         except Exception as e:
