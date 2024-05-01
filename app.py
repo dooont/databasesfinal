@@ -162,9 +162,26 @@ def purchase():
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                cursor.execute("INSERT INTO ticket (flightName, flightNum, flightDepDate, flightDepTime, flightID, ticketPrice, cardNum, cardType, nameOfHolder, expirationDate) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (str(flight_name), str(flight_flightNum), str(flight_depDate), str(flight_depTime), flight_ID, flight_ticketPrice, str(cardNum), cardType, nameOfHolder, expirationDate))
-                cursor.execute("INSERT INTO purchases (CustomerEmail, flightName, flightNum, flightDepDate, flightDepTime, flightID, PurchaseTime, PurchaseDate) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (email, flight_name, flight_flightNum, flight_depDate, flight_depTime, flight_ID, purchaseTime, purchaseDate))
-                # flight = cursor.fetchone()
+                # print('in cursor')
+                # cursor.execute("INSERT INTO ticket (flightName, flightNum, flightDepDate, flightDepTime, flightID, ticketPrice, cardNum, cardType, nameOfHolder, expirationDate) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (str(flight_name), str(flight_flightNum), str(flight_depDate), str(flight_depTime), flight_ID, flight_ticketPrice, str(cardNum), cardType, nameOfHolder, expirationDate))
+                # cursor.execute("INSERT INTO purchases (CustomerEmail, flightName, flightNum, flightDepDate, flightDepTime, flightID, PurchaseTime, PurchaseDate) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (email, flight_name, flight_flightNum, flight_depDate, flight_depTime, flight_ID, purchaseTime, purchaseDate))
+                # # flight = cursor.fetchone()
+                insert_ticket = """
+                INSERT INTO ticket (flightName, flightNum, flightDepDate, flightDepTime, flightID, ticketPrice, cardNum, cardType, nameOfHolder, expirationDate)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """
+                cursor.execute(insert_ticket, (flight_name, flight_flightNum, flight_depDate, flight_depTime, flight_ID, flight_ticketPrice, cardNum, cardType, nameOfHolder, expirationDate))
+                
+                insert_purchase = """
+                INSERT INTO purchase (CustomerEmail, flightName, flightNum, flightDepDate, flightDepTime, flightID, PurchaseDate, PurchaseTime)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """
+                cursor.execute(insert_purchase, (email, flight_name, flight_flightNum, flight_depDate, flight_depTime, flight_ID, purchaseDate, purchaseTime))
+                
+                connection.commit()
+        except Exception as e:
+            print("An error occurred:", e)
+            connection.rollback()
         finally:
             connection.close()
         return render_template('index.html')
