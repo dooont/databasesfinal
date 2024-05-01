@@ -670,7 +670,7 @@ def logout():
     
 @app.route('/logout-staff', methods=['GET'])
 def logoutStaff():
-    session.pop('staff_username')
+    session.pop('staff_logged')
     print("logged out")
     session.clear()  # Clear all session data
     return redirect('/staff-login')
