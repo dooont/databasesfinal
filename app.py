@@ -248,7 +248,7 @@ def customer_rating():
 #tracking spending
 @app.route('/spending', methods=['GET', 'POST'])
 def track_spending():
-    name = session['customer_username']
+    name = session['actual_name']
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
@@ -264,9 +264,15 @@ def track_spending():
             GROUP BY YEAR(flightDepDate), MONTH(flightDepDate)
             ORDER BY YEAR(flightDepDate), MONTH(flightDepDate)
             """
-
             cursor.execute(monthly_spending_query,(name))
             monthly_data = cursor.fetchall()
+            print(monthly_data)
+            final_monthly_data = []
+            for data in monthly_data:
+                year = data['YEAR(flightDepDate)']
+                month = data['MONTH(flightDepDate)']
+                total = data['SUM(ticketPrice)']
+                final_monthly_data.append((year, month, total))
             
             if request.method == 'POST':
                 start_date = request.form['start_date']
@@ -285,14 +291,12 @@ def track_spending():
                 """
                 cursor.execute(monthly_range_query, (start_date, end_date, name))
                 range_monthly_data = cursor.fetchall()
-                #connection.commit()
-                return render_template('spending.html', total_past_year=total_past_year, monthly_data=monthly_data, range_total=range_total, range_monthly_data=range_monthly_data)
-            
-        
+                # print(range_monthly_data)
+                return render_template('spending.html', total_past_year=total_past_year, monthly_data=final_monthly_data, range_total=range_total, range_monthly_data=range_monthly_data)
     finally:
         connection.close()
     
-    return render_template('spending.html', total_past_year=total_past_year, monthly_data=monthly_data, range_total=None, range_monthly_data=None)
+    return render_template('spending.html', total_past_year=total_past_year, monthly_data=final_monthly_data, range_total=None, range_monthly_data=None)
 
 #cancel route
 @app.route('/cancel', methods=['GET', 'POST'])
