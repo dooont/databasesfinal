@@ -125,14 +125,14 @@ def filter_flightsCustomer():
     if flight_type == 'one-way':
         try:
             with connection.cursor() as cursor:
-                cursor.execute("SELECT * FROM flight WHERE depAirport = %s AND arrAirport = %s AND depDate == %s", (source, destination, start_date))
+                cursor.execute("SELECT * FROM flight WHERE depAirport = %s AND arrAirport = %s AND depDate = %s", (source, destination, start_date))
                 flight_records = cursor.fetchall()
         finally:
             connection.close()
     else:
         try:
             with connection.cursor() as cursor:
-                cursor.execute("SELECT * FROM flight WHERE depAirport = %s AND arrAirport = %s AND (depDate == %s OR depDate == %s)", (source, destination, start_date, end_date))
+                cursor.execute("SELECT * FROM flight WHERE depAirport = %s OR depAirport = %s AND (depDate = %s OR depDate = %s)", (source, destination, start_date, end_date))
                 flight_records = cursor.fetchall()
         finally:
             connection.close()
@@ -565,7 +565,7 @@ def createFlight():
                 connection.commit()
         finally:
             connection.close()
-        return redirect('/flights')
+        return redirect('/flights-staff')
     else:
         return render_template('create_flight.html')
 
