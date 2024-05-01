@@ -47,6 +47,7 @@ def customer_login():
         if customer:
             session['customer_logged'] = True
             session['customer_username'] = customer['emailAddress']
+            session['actual_name'] = customer['firstName'] + " " + customer['lastName']
             return render_template('customer_home.html', customer=customer)
             # Handling the case where login credentials are invalid
 
@@ -94,12 +95,31 @@ def customer_home():
     else:
         return redirect('/')
 
-@app.route('/flights', methods=['GET'])
+@app.route('/flights-customer', methods=['GET'])
 def flightsCustomer():
     connection = get_db_connection()
+    username = session['actual_name']
+    print(username)
     try:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM flight")
+            cursor.execute("""SELECT DISTINCT
+                            f.Name,
+                            f.flightNum,
+                            f.depDate,
+                            f.depTime,
+                            f.depAirport,
+                            f.arrDate,
+                            f.arrTime,
+                            f.arrAirport,
+                            f.ID,
+                            f.basePrice,
+                            f.status
+                        FROM flight AS f
+                        JOIN ticket AS t 
+                            ON f.flightNum = t.flightNum 
+                            AND f.depDate = t.flightDepDate 
+                            AND f.depTime = t.flightDepTime
+                        WHERE t.nameOfHolder = %s""", (username))
             flight_records = cursor.fetchall()
     finally:
         connection.close()
@@ -677,6 +697,18 @@ def frequentCustomers():
 
 
 #Both Staff and Customer =========================================================================================
+#alternate flights route
+@app.route('/flights', methods=['GET'])
+def flightsEveryone():
+    connection = get_db_connection()
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT * FROM flight")
+            flight_records = cursor.fetchall()
+    finally:
+        connection.close()
+        
+    return render_template('view_flights_customer.html', flights=flight_records)
 
 #logout app route
 @app.route('/logout', methods=['GET', 'POST'])
