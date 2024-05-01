@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    /* Add your CSS styles here */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+    }
+
+    h1 {
+      color: #333;
+      text-align: center;
+    }
+
+    .customer.register-form {
+      margin: 20px auto;
+      max-width: 400px;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      margin-bottom: 10px;
+    }
+
+    input[type="submit"],
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    input[type="submit"]:hover,
+    button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Flight Information</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Email</th>
+        <th>Flight Name</th>
+        <th>Flight Number</th>
+        <th>Departure Date</th>
+        <th>Departure Time</th>
+        <th>Flight ID</th>
+        <th>Purchase Time</th>
+        <th>Purchase Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for purchase in purchases %}
+      <tr>
+        <td>{{ purchase.CustomerEmail }}</td>
+        <td>{{ purchase.flightName }}</td>
+        <td>{{ purchase.flightNum }}</td>
+        <td>{{ purchase.flightDepDate }}</td>
+        <td>{{ purchase.flightDepTime }}</td>
+        <td>{{ purchase.flightID}}</td>
+        <td>{{ purchase.PurchaseTime }}</td>
+        <td>{{ purchase.PurchaseDate }}</td>
+        <td>
+          <form action="/cancel" method="post">
+            <input type="hidden" name="email" value="{{ purchase.CustomerEmail }}">
+            <input type="hidden" name="purchase_name" value="{{ purchase.flightName }}">
+            <input type="hidden" name="purchase_number" value="{{ purchase.flightNum }}">
+            <input type="hidden" name="purchase_depDate" value="{{ purchase.flightDepDate }}">
+            <input type="hidden" name="purchase_depTime" value="{{ purchase.flightDepTime }}">
+            <button type="submit">Cancel</button>
+          </form>
+        </td>
+
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <form method="get" action="/">
+    <button type="submit">Go Back Home</button>
+  </form>
+</body>
+
+</html>

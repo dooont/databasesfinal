@@ -37,6 +37,7 @@ def customer_login():
     global customerLogged
     if request.method == 'POST':
         username = request.form.get('username')
+        print(username)
         password = request.form.get('password')
         connection = get_db_connection()
         try:
@@ -284,6 +285,48 @@ def track_spending():
         connection.close()
     
     return render_template('spending.html', total_past_year=total_past_year, monthly_data=monthly_data, range_total=None, range_monthly_data=None)
+
+#cancel route
+@app.route('/cancel', methods=['GET', 'POST'])
+def cancel():
+    if request.method == 'GET':
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                username = session.get('username')
+                cursor.execute("SELECT * FROM purchases WHERE CustomerEmail = %s", ('alice.smith@example.com',))
+                purchases = cursor.fetchall()
+        finally:
+            connection.close()
+        return render_template('cancel.html', purchases=purchases)
+    else:
+        email = request.form.get('email')
+        purchase_name = request.form.get('purchase_name')
+        purchase_number = request.form.get('purchase_number')
+        purchase_depDate = request.form.get('purchase_depDate')
+        purchase_depTime = request.form.get('purchase_depTime')
+        # Assuming ticketID is the unique identifier for a ticket
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                sql = "SELECT ticketID FROM ticket WHERE flightNum = %s AND flightName = %s"
+                cursor.execute(sql, (purchase_number, purchase_name))
+                result = cursor.fetchone()
+                tixID = result['ticketID'] if result and result['ticketID'] is not None else 0
+                
+                print(email, purchase_name, purchase_number, purchase_depDate, purchase_depTime)
+                query1 = "DELETE FROM purchases WHERE CustomerEmail = %s AND flightName = %s AND flightNum = %s AND flightDepDate = %s AND flightDepTime = %s"
+                cursor.execute(query1, (email, purchase_name, purchase_number, purchase_depDate, purchase_depTime))
+                # cursor.execute("DELETE FROM purchases WHERE CustomerEmail = %s AND flightName = %s AND flightNum = %s AND flightDepDate = %s AND flightDepTime = %s",(email, purchase_name, purchase_number, purchase_depDate, purchase_depTime))
+                connection.commit()
+                query2 = "DELETE FROM ticket WHERE ticketID = %s"
+                cursor.execute(query2, (tixID))
+                # cursor.execute("DELETE FROM ticket WHERE ticketID = %s", tixID)
+                connection.commit()
+        finally:
+            connection.close()
+        return redirect('/cancel')
+
 
 #Staff Pages + What they can do =========================================================================================
 
