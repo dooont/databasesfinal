@@ -351,6 +351,7 @@ def staffLoginPost():
         # If valid credentials, set session variables
         session['staff_logged'] = True
         session['staff_username'] = staff['Username']  # Store the username in the session
+        session['staff_airline'] = staff['Airline_Name']
         return render_template('staff_home.html')
     else:
         # If no valid credentials, handle login failure
@@ -658,16 +659,32 @@ def staff_ratings():
 
 #view frequent customers
 @app.route('/frequent-customers', methods=['GET'])
-def frequent_customers():
+def frequentCustomers():
+    username = session.get('staff_username')
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT emailAddress, COUNT(emailAddress) AS freq FROM purchases GROUP BY emailAddress ORDER BY freq DESC")
-            frequent_customers = cursor.fetchall()
+            cursor.execute("SELECT Airline_Name FROM airlinestaff WHERE Username = %s", (username))
+            result = cursor.fetchone()
+            airline = result['Airline_Name'] if result and result['Airline_Name'] is not None else 0
+            print(airline)
+            sql_query = """
+                SELECT DISTINCT t.nameOfHolder, t.flightNum 
+                FROM ticket AS t
+                INNER JOIN (
+                    SELECT nameOfHolder
+                    FROM ticket
+                    WHERE flightName = %s
+                    GROUP BY nameOfHolder
+                    HAVING COUNT(*) >= 3
+                ) AS frequent_flyers ON t.nameOfHolder = frequent_flyers.nameOfHolder
+                WHERE t.flightName = %s
+                """
+            cursor.execute(sql_query,(airline, airline))
+            frequent = cursor.fetchall()
     finally:
         connection.close()
-        
-    return render_template('view_customers.html', customers=frequent_customers)
+    return render_template('tickets.html', tickets=frequent)
 
 
 #Both Staff and Customer =========================================================================================
@@ -685,6 +702,7 @@ def logout():
 @app.route('/logout-staff', methods=['GET'])
 def logoutStaff():
     session.pop('staff_username')
+    session.pop('staff_airline')
     session['staff_logged'] = False
     print("logged out")
     session.clear()  # Clear all session data

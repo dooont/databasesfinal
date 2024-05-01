@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Tickets</title>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='tables.css') }}">
+</head>
+<body>
+  <h1>Tickets</h1>
+  <table>
+    <tr>  
+      <th>Name of Holder</th>
+      <th>Flight Number</th>
+    </tr>
+    {% for ticket in tickets %}
+    <tr>
+      <td>{{ ticket.nameOfHolder }}</td>
+      <td>{{ ticket.flightNum }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</body>
+</html>
