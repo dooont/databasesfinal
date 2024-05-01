@@ -6,8 +6,6 @@ import pymysql.cursors
 
 staffAirline = ''
 staffUsername = ''
-customerLogged = False
-staffLogged = False
 
 #if they logout, they shouldn't be able to go back
 #implement as much logic as possible in the backend
@@ -91,7 +89,7 @@ def customer_register():
 
 @app.route('/customer-home', methods=['GET', 'POST'])
 def customer_home():
-    if session.get('customer_logged'):
+    if session['customer_logged']:
         return render_template('customer_home.html')
     else:
         return redirect('/')
@@ -679,6 +677,7 @@ def frequent_customers():
 def logout():
     # Check if the user is logged in as staff or customer and then log them out.    
     session.pop('customer_username')  
+    session['customer_logged'] = False
     print("logged out")
     session.clear()  # Clear all session data
     return redirect('/customer-login')
@@ -686,7 +685,7 @@ def logout():
 @app.route('/logout-staff', methods=['GET'])
 def logoutStaff():
     session.pop('staff_username')
-    session.pop('staff_logged')
+    session['staff_logged'] = False
     print("logged out")
     session.clear()  # Clear all session data
     return redirect('/staff-login')
