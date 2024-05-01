@@ -1,11 +1,11 @@
 from flask import Flask, redirect, render_template, request, session, url_for
-from datetime import datetime, timedelta
-from functools import wraps
+from datetime import datetime
+import html
 
 import pymysql.cursors
 
-staffAirline = ''
-staffUsername = ''
+def escape_html(input_string):
+    return html.escape(input_string)
 
 #if they logout, they shouldn't be able to go back
 #implement as much logic as possible in the backend
@@ -33,9 +33,9 @@ def index():
 @app.route('/customer-login', methods=['GET', 'POST'])
 def customer_login():
     if request.method == 'POST':
-        username = request.form.get('username')
+        username = request.form.get(escape_html('username'))
         print(username)
-        password = request.form.get('password')
+        password = request.form.get(escape_html('password'))
         connection = get_db_connection()
         customer = None
         try:
@@ -58,21 +58,21 @@ def customer_login():
 @app.route('/customer-register', methods=['GET', 'POST'])
 def customer_register():
     if request.method == 'POST':
-        username = request.form.get('emailAddress')
-        password = request.form.get('password')
-        first_name = request.form.get('firstName')
-        last_name = request.form.get('lastName')
-        building_number = request.form.get('buildingNumber')
-        street_name = request.form.get('streetName')
-        apartment_number = request.form.get('apartmentNumber')
-        city = request.form.get('city')
-        state = request.form.get('state')
-        zip_code = request.form.get('zip_code')
-        passport_number = request.form.get('passport_number')
-        passport_expiration = request.form.get('passport_expiration')
-        passport_country = request.form.get('passport_country')
-        date_of_birth = request.form.get('date_of_birth')
-        phone_number = request.form.get("phoneNumber")
+        username = request.form.get(escape_html('emailAddress'))
+        password = request.form.get(escape_html('password'))
+        first_name = request.form.get(escape_html('firstName'))
+        last_name = request.form.get(escape_html('lastName'))
+        building_number = request.form.get(escape_html('buildingNumber'))
+        street_name = request.form.get(escape_html('streetName'))
+        apartment_number = request.form.get(escape_html('apartmentNumber'))
+        city = request.form.get(escape_html('city'))
+        state = request.form.get(escape_html('state'))
+        zip_code = request.form.get(escape_html('zip_code'))
+        passport_number = request.form.get(escape_html('passport_number'))
+        passport_expiration = request.form.get(escape_html('passport_expiration'))
+        passport_country = request.form.get(escape_html('passport_country'))
+        date_of_birth = request.form.get(escape_html('date_of_birth'))
+        phone_number = request.form.get(escape_html("phoneNumber"))
 
         connection = get_db_connection()
         try:
@@ -129,11 +129,11 @@ def flightsCustomer():
 #filter flights
 @app.route('/flights', methods=['POST'])
 def filter_flightsCustomer():
-    start_date = request.form.get('start_date')
-    end_date = request.form.get('end_date')
-    source = request.form.get('source')
-    destination = request.form.get('destination')
-    flight_type = request.form.get('flight_type')
+    start_date = request.form.get(escape_html('start_date'))
+    end_date = request.form.get(escape_html('end_date'))
+    source = request.form.get(escape_html('source'))
+    destination = request.form.get(escape_html('destination'))
+    flight_type = request.form.get(escape_html('flight_type'))
     
     if not start_date:
         start_date = '2020-01-01'  
@@ -167,16 +167,16 @@ def purchase():
             flights = cursor.fetchall()
         return render_template('checkout.html', flights=flights)
     else:
-        flight_name = request.form.get('flight_name')
-        flight_flightNum = request.form.get('flight_flightNum')
-        flight_depDate = request.form.get('flight_depDate')
-        flight_depTime = request.form.get('flight_depTime')
-        flight_ID = request.form.get('flight_id')
-        flight_ticketPrice = request.form.get('flight_basePrice')
+        flight_name = request.form.get(escape_html('flight_name'))
+        flight_flightNum = request.form.get(escape_html('flight_flightNum'))
+        flight_depDate = request.form.get(escape_html('flight_depDate'))
+        flight_depTime = request.form.get(escape_html('flight_depTime'))
+        flight_ID = request.form.get(escape_html('flight_id'))
+        flight_ticketPrice = request.form.get(escape_html('flight_basePrice'))
         cardNum = request.form['cardNum']
-        cardType = request.form.get('cardType') #input by customer
-        nameOfHolder = request.form.get('nameOfHolder') #input by customer
-        expirationDate = request.form.get('expirationDate') #input by customer
+        cardType = request.form.get(escape_html('cardType')) #input by customer
+        nameOfHolder = request.form.get(escape_html('nameOfHolder')) #input by customer
+        expirationDate = request.form.get(escape_html('expirationDate')) #input by customer
         email = session['customer_username']
         now = datetime.now()
         purchaseTime = now.strftime('%H:%M:%S')
@@ -223,11 +223,11 @@ def customer_rating():
     if request.method == 'GET':
         return render_template('customer_rating.html')
     else:
-        email = request.form.get('Email')
-        ticketID = request.form.get('ticketID')
-        rating = request.form.get('Rating')
-        comment = request.form.get('Comment')
-        flightDate = request.form.get('flightDate')
+        email = request.form.get(escape_html('Email'))
+        ticketID = request.form.get(escape_html('ticketID'))
+        rating = request.form.get(escape_html('Rating'))
+        comment = request.form.get(escape_html('Comment'))
+        flightDate = request.form.get(escape_html('flightDate'))
         flightDateStr = datetime.strptime(flightDate, '%Y-%m-%d').date()
         tdyDate = datetime.now().date()
         connection = get_db_connection()
@@ -319,11 +319,11 @@ def cancel():
             connection.close()
         return render_template('cancel.html', purchases=purchases)
     else:
-        email = request.form.get('email')
-        purchase_name = request.form.get('purchase_name')
-        purchase_number = request.form.get('purchase_number')
-        purchase_depDate = request.form.get('purchase_depDate')
-        purchase_depTime = request.form.get('purchase_depTime')
+        email = request.form.get(escape_html('email'))
+        purchase_name = request.form.get(escape_html('purchase_name'))
+        purchase_number = request.form.get(escape_html('purchase_number'))
+        purchase_depDate = request.form.get(escape_html('purchase_depDate'))
+        purchase_depTime = request.form.get(escape_html('purchase_depTime'))
         # Assuming ticketID is the unique identifier for a ticket
         connection = get_db_connection()
         try:
@@ -357,8 +357,8 @@ def staff_login():
 #staff login post
 @app.route('/staff-login', methods=['POST'])
 def staffLoginPost():
-    username = request.form.get('username')
-    password = request.form.get('password')
+    username = request.form.get(escape_html('username'))
+    password = request.form.get(escape_html('password'))
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
@@ -385,14 +385,14 @@ def staff_register():
 # staff registration post
 @app.route('/staff-register', methods=['POST'])
 def customer_register_post():
-    username = request.form.get('username')
-    password = request.form.get('password')
-    first_name = request.form.get('first-name')
-    last_name = request.form.get('last-name')
-    date_of_birth = request.form.get('dob')
-    airline_name = request.form.get('airline-name')
-    emailAddress = request.form.get('email-address')
-    phoneNumber = request.form.get('phone-number')
+    username = request.form.get(escape_html('username'))
+    password = request.form.get(escape_html('password'))
+    first_name = request.form.get(escape_html('first-name'))
+    last_name = request.form.get(escape_html('last-name'))
+    date_of_birth = request.form.get(escape_html('dob'))
+    airline_name = request.form.get(escape_html('airline-name'))
+    emailAddress = request.form.get(escape_html('email-address'))
+    phoneNumber = request.form.get(escape_html('phone-number'))
 
     connection = get_db_connection()
     try:
@@ -439,11 +439,11 @@ def flightsStaff():
 #filter flights
 @app.route('/flights-staff', methods=['POST'])
 def filter_flights():
-    start_date = request.form.get('start_date')
-    end_date = request.form.get('end_date')
-    source = request.form.get('source')
-    destination = request.form.get('arr_Airport')
-    flight_type = request.form.get('flight_type')
+    start_date = request.form.get(escape_html('start_date'))
+    end_date = request.form.get(escape_html('end_date'))
+    source = request.form.get(escape_html('source'))
+    destination = request.form.get(escape_html('arr_Airport'))
+    flight_type = request.form.get(escape_html('flight_type'))
     
     connection = get_db_connection()
     
@@ -475,11 +475,11 @@ def staff_home():
 @app.route('/add-airplane', methods=['GET', 'POST'])
 def addAirplane():
     if request.method == 'POST':
-        airplane_id = request.form.get('airplane_id')
-        manufacturing_company = request.form.get('manufacturing_company')
-        manufacturing_date = request.form.get('manufacturing_date')
-        NumberOfSeats = request.form.get('number_of_seats')
-        model_number = request.form.get('model_number')
+        airplane_id = request.form.get(escape_html('airplane_id'))
+        manufacturing_company = request.form.get(escape_html('manufacturing_company'))
+        manufacturing_date = request.form.get(escape_html('manufacturing_date'))
+        NumberOfSeats = request.form.get(escape_html('number_of_seats'))
+        model_number = request.form.get(escape_html('model_number'))
         AirlineName = session['staff_airline']
         connection = get_db_connection()
         try:
@@ -508,12 +508,12 @@ def airports():
 @app.route('/add-airport', methods=['GET', 'POST'])
 def addAirport():
     if request.method == 'POST':
-        airport_id = request.form.get('airport_id')
-        airport_name = request.form.get('airport_name')
-        airport_type = request.form.get('airport_type')
-        airport_city = request.form.get('airport_city')
-        airport_country = request.form.get('airport_country')
-        terminal = request.form.get('terminal')
+        airport_id = request.form.get(escape_html('airport_id'))
+        airport_name = request.form.get(escape_html('airport_name'))
+        airport_type = request.form.get(escape_html('airport_type'))
+        airport_city = request.form.get(escape_html('airport_city'))
+        airport_country = request.form.get(escape_html('airport_country'))
+        terminal = request.form.get(escape_html('terminal'))
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
@@ -541,8 +541,8 @@ def airplanes():
 @app.route('/change-flight-status', methods=['GET', 'POST'])
 def changeFlightStatus():
     if request.method == 'POST':
-        flight_id = request.form.get('flight_id')
-        status = request.form.get('new_status')
+        flight_id = request.form.get(escape_html('flight_id'))
+        status = request.form.get(escape_html('new_status'))
 
 
         connection = get_db_connection()
@@ -570,15 +570,15 @@ def createFlight():
                     return "Airline not found for the user", 404
 
                 airline = result['Airline_Name']
-                flight_id = request.form.get('flight_number')
-                airplane_id = request.form.get('aircraft_id')
-                dep_airport = request.form.get('departure_airport')
-                arr_airport = request.form.get('arrival_airport')
-                dep_date = request.form.get('departure_date')
-                dep_time = request.form.get('departure_time')
-                arr_date = request.form.get('arrival_date')
-                arr_time = request.form.get('arrival_time')
-                price = request.form.get('price')
+                flight_id = request.form.get(escape_html('flight_number'))
+                airplane_id = request.form.get(escape_html('aircraft_id'))
+                dep_airport = request.form.get(escape_html('departure_airport'))
+                arr_airport = request.form.get(escape_html('arrival_airport'))
+                dep_date = request.form.get(escape_html('departure_date'))
+                dep_time = request.form.get(escape_html('departure_time'))
+                arr_date = request.form.get(escape_html('arrival_date'))
+                arr_time = request.form.get(escape_html('arrival_time'))
+                price = request.form.get(escape_html('price'))
                 status = "on-time"
                 cursor.execute("INSERT INTO flight (Name, flightNum, depAirport, arrAirport, depDate, depTime, arrDate, arrTime, ID, basePrice, status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (airline, flight_id, dep_airport, arr_airport, dep_date, dep_time, arr_date, arr_time, airplane_id, price, status))
                 connection.commit()
@@ -605,11 +605,11 @@ def view_maintenance():
 @app.route('/schedule-maintenance', methods=['GET', 'POST'])
 def scheduleMaintenance():
     if request.method == 'POST':
-        start_date = request.form.get('start_date')
-        start_time = request.form.get('start_time')
-        end_date = request.form.get('end_date')
-        end_time = request.form.get('end_time')
-        airplane_id = request.form.get('airplane_id')
+        start_date = request.form.get(escape_html('start_date'))
+        start_time = request.form.get(escape_html('start_time'))
+        end_date = request.form.get(escape_html('end_date'))
+        end_time = request.form.get(escape_html('end_time'))
+        airplane_id = request.form.get(escape_html('airplane_id'))
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
@@ -660,7 +660,7 @@ def view_revenue():
 @app.route('/staff-ratings', methods=['GET', 'POST'])
 def staff_ratings():
     if request.method == 'POST':
-        ticket_id = request.form.get('ticket_id')
+        ticket_id = request.form.get(escape_html('ticket_id'))
         connection = get_db_connection()
         reviews = []
         try:
