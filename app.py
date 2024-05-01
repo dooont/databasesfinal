@@ -266,7 +266,7 @@ def track_spending():
             """
             cursor.execute(monthly_spending_query,(name))
             monthly_data = cursor.fetchall()
-            print(monthly_data)
+            # print(monthly_data)
             final_monthly_data = []
             for data in monthly_data:
                 year = data['YEAR(flightDepDate)']
@@ -292,11 +292,17 @@ def track_spending():
                 cursor.execute(monthly_range_query, (start_date, end_date, name))
                 range_monthly_data = cursor.fetchall()
                 # print(range_monthly_data)
-                return render_template('spending.html', total_past_year=total_past_year, monthly_data=final_monthly_data, range_total=range_total, range_monthly_data=range_monthly_data)
+                final_range_monthly_data = []
+                for data in range_monthly_data:
+                    year = data['YEAR(flightDepDate)']
+                    month = data['MONTH(flightDepDate)']
+                    total = data['SUM(ticketPrice)']
+                    final_range_monthly_data.append((year, month, total))
+                return render_template('spending.html', total_past_year=total_past_year, monthly_data=final_monthly_data, range_total=range_total, range_monthly_data=final_range_monthly_data)
     finally:
         connection.close()
     
-    return render_template('spending.html', total_past_year=total_past_year, monthly_data=final_monthly_data, range_total=None, range_monthly_data=None)
+    return render_template('spending.html', total_past_year=total_past_year, monthly_data=final_monthly_data, range_total=None, final_range_monthly_data=None)
 
 #cancel route
 @app.route('/cancel', methods=['GET', 'POST'])
@@ -474,7 +480,7 @@ def addAirplane():
         manufacturing_date = request.form.get('manufacturing_date')
         NumberOfSeats = request.form.get('number_of_seats')
         model_number = request.form.get('model_number')
-        AirlineName = request.form.get('airline_name')
+        AirlineName = session['staff_airline']
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
@@ -524,7 +530,7 @@ def airplanes():
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM airplanes")
+            cursor.execute("SELECT * FROM airplanes WHERE airlineName = %s", (session['staff_airline'],))
             airplane_records = cursor.fetchall()
     finally:
         connection.close()
