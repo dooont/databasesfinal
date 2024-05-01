@@ -400,7 +400,7 @@ def flightsStaff():
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT Airline_Name FROM airlineStaff WHERE Username = %s", (username,))
+            cursor.execute("SELECT Airline_Name FROM airlinestaff WHERE Username = %s", (username,))
             result = cursor.fetchone()
             airline = result['Airline_Name'] if result and result['Airline_Name'] is not None else 0
             cursor.execute("SELECT * FROM flight WHERE Name = %s", (airline))
@@ -539,7 +539,7 @@ def createFlight():
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
-                cursor.execute("SELECT Airline_Name FROM airlineStaff WHERE Username = %s", (username,))
+                cursor.execute("SELECT Airline_Name FROM airlinestaff WHERE Username = %s", (username,))
                 result = cursor.fetchone()
                 if not result:
                     return "Airline not found for the user", 404
