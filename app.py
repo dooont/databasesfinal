@@ -228,7 +228,7 @@ def customer_rating():
 #tracking spending
 @app.route('/spending', methods=['GET', 'POST'])
 def track_spending():
-    name = request.args.get('name', default='')
+    name = session['customer_username']
     connection = get_db_connection()
     try:
         with connection.cursor() as cursor:
