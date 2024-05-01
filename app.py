@@ -575,7 +575,7 @@ def staff_ratings():
         return render_template('view_flight_rating.html', reviews=reviews)
     else:
         # If GET request, just render the form without reviews
-        return render_template('view_flight_rating.html', reviews=[])
+        return render_template('view_flight_rating.html', re    views=[])
 
 #Both Staff and Customer =========================================================================================
 
