@@ -533,7 +533,7 @@ def changeFlightStatus():
                 connection.commit()
         finally:
             connection.close()
-        return redirect('/flights')
+        return redirect('/flights-staff')
     else:
         return render_template('change_status.html')
 
@@ -541,7 +541,7 @@ def changeFlightStatus():
 @app.route('/create-flight', methods=['GET', 'POST'])
 def createFlight():
     if request.method == 'POST':
-        username = session.get('username')
+        username = session.get('staff_username')
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
