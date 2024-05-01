@@ -166,6 +166,7 @@ def purchase():
                 # cursor.execute("INSERT INTO ticket (flightName, flightNum, flightDepDate, flightDepTime, flightID, ticketPrice, cardNum, cardType, nameOfHolder, expirationDate) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (str(flight_name), str(flight_flightNum), str(flight_depDate), str(flight_depTime), flight_ID, flight_ticketPrice, str(cardNum), cardType, nameOfHolder, expirationDate))
                 # cursor.execute("INSERT INTO purchases (CustomerEmail, flightName, flightNum, flightDepDate, flightDepTime, flightID, PurchaseTime, PurchaseDate) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (email, flight_name, flight_flightNum, flight_depDate, flight_depTime, flight_ID, purchaseTime, purchaseDate))
                 # # flight = cursor.fetchone()
+                print(flight_name, flight_flightNum, flight_depDate, flight_depTime, flight_ID, flight_ticketPrice, cardNum, cardType, nameOfHolder, expirationDate)
                 insert_ticket = """
                 INSERT INTO ticket (flightName, flightNum, flightDepDate, flightDepTime, flightID, ticketPrice, cardNum, cardType, nameOfHolder, expirationDate)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
