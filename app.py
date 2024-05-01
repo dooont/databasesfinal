@@ -1,6 +1,5 @@
 from flask import Flask, redirect, render_template, request, session, url_for
-from datetime import datetime, timedelta
-from functools import wraps
+from datetime import datetime
 
 import pymysql.cursors
 
@@ -50,8 +49,6 @@ def customer_login():
             session['customer_logged'] = True
             session['customer_username'] = customer['emailAddress']
             return render_template('customer_home.html', customer=customer)
-            # Handling the case where login credentials are invalid
-            return render_template('customer_login.html', error='Invalid username or password')
     else:
         return render_template('customer_login.html')
 # redirect to customer registration form
@@ -170,7 +167,6 @@ def purchase():
             connection.close()
         return render_template('checkout.html', flight=flight, name=name, email=email, phone=phone, passport=passport)
 
-
 #redirect to review flights form
 @app.route('/ratings', methods=['GET', 'POST'])
 def customer_rating():
@@ -198,7 +194,6 @@ def customer_rating():
             finally:
                 connection.close()
             return redirect('/')
-
 
 #tracking spending
 @app.route('/spending', methods=['GET', 'POST'])
@@ -275,7 +270,7 @@ def staffLoginPost():
         # If valid credentials, set session variables
         session['staff_logged'] = True
         session['staff_username'] = staff['Username']  # Store the username in the session
-        return redirect('staff_home.html', staff=staff)
+        return render_template('staff_home.html')
     else:
         # If no valid credentials, handle login failure
         session['staff_logged'] = False
@@ -563,22 +558,42 @@ def view_revenue():
     # Render a template to display the revenues
     return render_template('revenue.html', flight_name=flight_name, last_month_revenue=last_month_revenue, last_year_revenue=last_year_revenue)
 
+@app.route('/staff-ratings', methods=['GET', 'POST'])
+def staff_ratings():
+    if request.method == 'POST':
+        ticket_id = request.form.get('ticket_id')
+        connection = get_db_connection()
+        reviews = []
+        try:
+            with connection.cursor() as cursor:
+                sql_query = "SELECT emailAddress, ticketID, Rating, Comment FROM review WHERE ticketID = %s"
+                cursor.execute(sql_query, (ticket_id,))
+                reviews = cursor.fetchall()
+        finally:
+            connection.close()
+        
+        return render_template('view_flight_rating.html', reviews=reviews)
+    else:
+        # If GET request, just render the form without reviews
+        return render_template('view_flight_rating.html', reviews=[])
+
 #Both Staff and Customer =========================================================================================
 
 #logout app route
-@app.route('/logout', methods=['GET', 'POST'])
+@app.route('/logout', methods=['GET'])
 def logout():
     # Check if the user is logged in as staff or customer and then log them out.
-    if 'staff_logged' in session:
-        session.pop('staff_logged', False)  # Remove staff login session variable
-        session.pop('staff_username', None)  # Optionally remove other staff-related session data
-
-    if 'customer_logged' in session:
-        session.pop('customer_logged', False)  # Remove customer login session variable
-        session.pop('customer_id', None)  # Optionally remove other customer-related session data
-    
+    session.pop('emailAddress')  
     print("logged out")
-    return redirect('/')
+    session.clear()  # Clear all session data
+    return redirect('/staff-login')
+
+@app.route('/logout-staff', methods=['GET'])
+def logoutStaff():
+    session.pop('staff_username')
+    print("logged out")
+    session.clear()  # Clear all session data
+    return redirect('/staff-login')
 
 
 if __name__ == '__main__':
