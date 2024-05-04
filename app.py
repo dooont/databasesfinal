@@ -1,7 +1,7 @@
 from flask import Flask, redirect, render_template, request, session, url_for
 from datetime import datetime
 import html
-
+from werkzeug.security import generate_password_hash, check_password_hash
 import pymysql.cursors
 
 def escape_html(input_string):
@@ -12,6 +12,9 @@ def escape_html(input_string):
 
 app = Flask(__name__, static_folder="static")
 app.secret_key = 'whatever_you_want'
+
+app.config['SESSION_COOKIE_SECURE'] = True
+app.config['REMEMBER_COOKIE_SECURE'] = True
 
 def get_db_connection():
     # Here, replace the placeholders with your actual database connection details
@@ -30,36 +33,68 @@ def index():
 
 
 #Customer Pages + What they can do ==========================================================================================
+from flask import request, session, render_template
+from werkzeug.security import check_password_hash
+import html
+
 @app.route('/customer-login', methods=['GET', 'POST'])
 def customer_login():
     if request.method == 'POST':
-        username = request.form.get(escape_html('username'))
-        print(username)
-        password = request.form.get(escape_html('password'))
+        username = request.form.get('username')  # Removed escape_html as it's not necessary here; HTML escaping is for output not input handling
         connection = get_db_connection()
         customer = None
+        login_success = False  # Better naming instead of using 'password' for clarity
         try:
             with connection.cursor() as cursor:
-                cursor.execute("SELECT * FROM customer WHERE emailAddress = %s AND password = %s", (username, password))
-                customer = cursor.fetchone()
+                # Correctly fetching the hashed password from the database
+                cursor.execute("SELECT password FROM customer WHERE emailAddress = %s", (username,))
+                result = cursor.fetchone()
+                if result is not None:
+                    hashed_password = result['password']
+                    # Verify the password attempt
+                    password_attempt = request.form.get('password')  # Removed escape_html for password handling
+                    login_success = check_password_hash(hashed_password, password_attempt)
+                    if login_success:
+                        # Fetch full customer details only if password is verified
+                        cursor.execute("SELECT * FROM customer WHERE emailAddress = %s", (username,))
+                        customer = cursor.fetchone()
         finally:
             connection.close()
-        if customer:
+
+        if login_success and customer:
             session['customer_logged'] = True
             session['customer_username'] = customer['emailAddress']
             session['actual_name'] = customer['firstName'] + " " + customer['lastName']
             return render_template('customer_home.html', customer=customer)
-            # Handling the case where login credentials are invalid
-
+        else:
+            # Handle login failure; redirect to login page or show an error message
+            return "Login failed", 403  # Example error handling, adjust as needed
     else:
+        # If method is GET, show the login form or redirect as appropriate
         return render_template('customer_login.html')
+
+@app.route('/phone-number', methods=['GET', 'POST'])
+def phoneNumber():
+    if request.method == 'POST':
+        phone_number = request.form.get(escape_html('phone_number'))
+        username = session['customer_username']
+        connection = get_db_connection()
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("INSERT INTO customer_contact_info (emailAddress, phoneNumber) VALUES (%s, %s)", (username, phone_number))
+                connection.commit()
+        finally:
+            connection.close()
+        return redirect('/')
+    else:
+        return render_template('add_number.html')
 
 # redirect to customer registration form
 @app.route('/customer-register', methods=['GET', 'POST'])
 def customer_register():
     if request.method == 'POST':
         username = request.form.get(escape_html('emailAddress'))
-        password = request.form.get(escape_html('password'))
+        password = generate_password_hash(request.form.get(escape_html('password')))
         first_name = request.form.get(escape_html('firstName'))
         last_name = request.form.get(escape_html('lastName'))
         building_number = request.form.get(escape_html('buildingNumber'))
@@ -178,6 +213,8 @@ def purchase():
         nameOfHolder = request.form.get(escape_html('nameOfHolder')) #input by customer
         expirationDate = request.form.get(escape_html('expirationDate')) #input by customer
         email = session['customer_username']
+        
+                
         now = datetime.now()
         purchaseTime = now.strftime('%H:%M:%S')
         purchaseDate = now.strftime('%Y-%m-%d')
@@ -357,15 +394,25 @@ def staff_login():
 #staff login post
 @app.route('/staff-login', methods=['POST'])
 def staffLoginPost():
-    username = request.form.get(escape_html('username'))
-    password = request.form.get(escape_html('password'))
+    username = request.form.get('username')  # Removed escape_html; use validation if necessary
+    password_attempt = request.form.get('password')  # Removed escape_html
     connection = get_db_connection()
+    staff = None
+
     try:
         with connection.cursor() as cursor:
-            cursor.execute("SELECT * FROM airlinestaff WHERE username = %s AND password = %s", (username, password))
-            staff = cursor.fetchone()
+            # Query to fetch only the password hash based on the username
+            cursor.execute("SELECT password, Username, Airline_Name FROM airlinestaff WHERE username = %s", (username,))
+            result = cursor.fetchone()
+
+            if result:
+                # Check if the fetched password hash matches the attempted password
+                password_hash = result['password']
+                if check_password_hash(password_hash, password_attempt):
+                    staff = result  # Set 'staff' only if the password is correct
     finally:
         connection.close()
+
     if staff:
         # If valid credentials, set session variables
         session['staff_logged'] = True
@@ -375,7 +422,7 @@ def staffLoginPost():
     else:
         # If no valid credentials, handle login failure
         session['staff_logged'] = False
-        return redirect(url_for('login_page', error='Invalid credentials'))
+        return redirect(url_for('staff_login', error='Invalid credentials'))  # Ensure the endpoint name is correct
 
 # staff registration form
 @app.route('/staff-register', methods=['GET'])
@@ -386,7 +433,7 @@ def staff_register():
 @app.route('/staff-register', methods=['POST'])
 def customer_register_post():
     username = request.form.get(escape_html('username'))
-    password = request.form.get(escape_html('password'))
+    password = generate_password_hash(request.form.get(escape_html('password')))
     first_name = request.form.get(escape_html('first-name'))
     last_name = request.form.get(escape_html('last-name'))
     date_of_birth = request.form.get(escape_html('dob'))
@@ -556,31 +603,46 @@ def changeFlightStatus():
     else:
         return render_template('change_status.html')
 
-#create flight route
 @app.route('/create-flight', methods=['GET', 'POST'])
-def createFlight():
+def create_flight():
     if request.method == 'POST':
         username = session.get('staff_username')
         connection = get_db_connection()
         try:
             with connection.cursor() as cursor:
+                # Fetch the airline name associated with the user
                 cursor.execute("SELECT Airline_Name FROM airlinestaff WHERE Username = %s", (username,))
                 result = cursor.fetchone()
+
                 if not result:
                     return "Airline not found for the user", 404
 
                 airline = result['Airline_Name']
-                flight_id = request.form.get(escape_html('flight_number'))
-                airplane_id = request.form.get(escape_html('aircraft_id'))
-                dep_airport = request.form.get(escape_html('departure_airport'))
-                arr_airport = request.form.get(escape_html('arrival_airport'))
-                dep_date = request.form.get(escape_html('departure_date'))
-                dep_time = request.form.get(escape_html('departure_time'))
-                arr_date = request.form.get(escape_html('arrival_date'))
-                arr_time = request.form.get(escape_html('arrival_time'))
-                price = request.form.get(escape_html('price'))
+                flight_id = request.form.get('flight_number')
+                airplane_id = request.form.get('aircraft_id')
+                dep_airport = request.form.get('departure_airport')
+                arr_airport = request.form.get('arrival_airport')
+                dep_date = request.form.get('departure_date')
+                dep_time = request.form.get('departure_time')
+                arr_date = request.form.get('arrival_date')
+                arr_time = request.form.get('arrival_time')
+                price = request.form.get('price')
                 status = "on-time"
-                cursor.execute("INSERT INTO flight (Name, flightNum, depAirport, arrAirport, depDate, depTime, arrDate, arrTime, ID, basePrice, status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)", (airline, flight_id, dep_airport, arr_airport, dep_date, dep_time, arr_date, arr_time, airplane_id, price, status))
+
+                # Check if the airplane is in maintenance on the departure date
+                cursor.execute(
+                    "SELECT airplaneID FROM maintenance WHERE start_date <= %s AND end_date >= %s AND airplaneID = %s",
+                    (dep_date, dep_date, airplane_id))
+                maintenance_check = cursor.fetchone()
+
+                if maintenance_check:
+                    # If there is maintenance, do not allow the flight creation
+                    return "Cannot schedule flight. Aircraft is under maintenance.", 400
+
+                # Insert the new flight record into the database
+                cursor.execute(
+                    "INSERT INTO flight (Name, flightNum, depAirport, arrAirport, depDate, depTime, arrDate, arrTime, ID, basePrice, status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                    (airline, flight_id, dep_airport, arr_airport, dep_date, dep_time, arr_date, arr_time, airplane_id, price, status))
                 connection.commit()
         finally:
             connection.close()
@@ -659,9 +721,9 @@ def view_revenue():
 
 @app.route('/staff-ratings', methods=['GET', 'POST'])
 def staff_ratings():
+    connection = get_db_connection()
     if request.method == 'POST':
         ticket_id = request.form.get(escape_html('ticket_id'))
-        connection = get_db_connection()
         reviews = []
         try:
             with connection.cursor() as cursor:
@@ -673,8 +735,15 @@ def staff_ratings():
         
         return render_template('view_flight_rating.html', reviews=reviews)
     else:
+        try:
+            with connection.cursor() as cursor:
+                sql_query = "SELECT emailAddress, ticketID, Rating, Comment FROM review"
+                cursor.execute(sql_query)
+                reviews = cursor.fetchall()
+        finally:
+            connection.close()
         # If GET request, just render the form without reviews
-        return render_template('view_flight_rating.html', reviews=[])
+        return render_template('view_flight_rating.html', reviews=reviews)
 
 #view frequent customers
 @app.route('/frequent-customers', methods=['GET'])
@@ -728,7 +797,7 @@ def logout():
     session['customer_logged'] = False
     print("logged out")
     session.clear()  # Clear all session data
-    return redirect('/customer-login')
+    return redirect('/placeholder')
     
 @app.route('/logout-staff', methods=['GET'])
 def logoutStaff():
@@ -737,7 +806,18 @@ def logoutStaff():
     session['staff_logged'] = False
     print("logged out")
     session.clear()  # Clear all session data
-    return redirect('/staff-login')
+    return redirect('/placeholder')
+
+@app.route('/placeholder' , methods=['GET'])
+def placeholder():
+    return redirect('/')
+
+@app.after_request
+def apply_caching(response):
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
 
 if __name__ == '__main__':
     app.run(debug=True)
